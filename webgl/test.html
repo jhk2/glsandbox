@@ -1,0 +1,62 @@
+<html>
+
+<script type="text/javascript">
+
+function draw() {
+	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	mat4.identity(mvMatrix);
+	
+	mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
+	gl.bindBuffer(gl.Array_BUFFER, trianglePosBuffer);
+	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, trianglePosBuffer, gl.FLOAT, false, 0, 0);
+	setMatrixUniforms();
+	
+}
+
+var trianglePosBuffer;
+var squarePosBuffer;
+
+function initBuffers() {
+	trianglePosBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
+	var vertices = [
+		0, 1, 0,
+		-1, -1, 0,
+		0, -1, 0
+	];
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+	trianglePosBuffer.itemSize = 3;
+	trianglePosBuffer.numItems = 3;
+	
+	squarePosBuffer = gl.createBuffer();
+	glBindBuffer(gl.ARRAY_BUFFER, squarePosBuffer);
+	vertices = [
+		1, 1, 0,
+		-1, 1, 0,
+		1, -1, 0,
+		-1, -1, 0
+	];
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+	squarePosBuffer.itemSize = 3;
+	squarePosBuffer.numItems = 4;
+}
+
+function webGLStart() {
+	var canvas = document.getElementById("testcanvas");
+	initGL(canvas);
+	initShaders();
+	initBuffers();
+	
+	gl.clearColor(0, 0, 0, 0);
+	gl.enable(gl.DEPTH_TEST);
+	
+	draw();
+}
+</script>
+
+<body onload="webGLStart()">
+<canvas id="testcanvas" style="border: none;" width="500" height="500"></canvas>
+</body>
+</html>
