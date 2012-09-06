@@ -1,18 +1,112 @@
 <html>
+<head>
+<title>webgl test</title>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+<script id="shader-fs" type="x-shader/x-fragment">
+	precision mediump float;
+	
+	void main(void) {
+		gl_FragColor = vec4(1, 1, 1, 1);
+	}
+</script>
+<script id="shader-vs" type="x-shader/x-vertex">
+	attribute vec3 in_Pos;
+	uniform mat4 mvMatrix;
+	uniform mat4 projMatrix;
+	
+	void main(void) {
+		gl_Position = projMatrix * mvMatrix * vec4(in_Pos, 1);
+	}
+</script>
 
 <script type="text/javascript">
 
-function draw() {
+var gl;
+
+function resizeGL() {
+	var canvas = document.getElementById("testcanvas");
+	gl.viewportWidth = window.innerWidth;
+	gl.viewportHeight = window.innerHeight;
+	canvas.width = gl.viewportWidth;
+	canvas.height = gl.viewportHeight;
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-	mat4.identity(mvMatrix);
+}
+
+window.onresize = resizeGL;
+
+function initGL(canvas) {
+	try {
+		gl = canvas.getContext("experimental-webgl");
+		resizeGL();
+	} catch(e) {
 	
-	mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
-	gl.bindBuffer(gl.Array_BUFFER, trianglePosBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, trianglePosBuffer, gl.FLOAT, false, 0, 0);
-	setMatrixUniforms();
+	}
+	if (!gl) {
+		alert("Could not initialize webGL");
+	}
+}
+
+var shaderProgram;
+function initShaders() {
+	var fragmentShader = getShader(gl, "shader-fs");
+	var vertexShader = getShader(gl, "shader-vs");
 	
+	shaderProgram = gl.createProgram();
+	gl.attachShader(shaderProgram, vertexShader);
+	gl.attachShader(shaderProgram, fragmentShader);
+	gl.linkProgram(shaderProgram);
+	
+	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+		alert("Could not initialize shaders");
+	}
+	
+	gl.useProgram(shaderProgram);
+	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "in_Pos");
+	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+	shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "projMatrix");
+	shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "mvMatrix");
+}
+
+function getShader(gl, id) {
+	var shaderScript = document.getElementById(id);
+	if (!shaderScript) {
+		return null;
+	}
+	var str = "";
+	var k = shaderScript.firstChild;
+	while (k) {
+		if (k.nodeType == 3) {
+			str += k.textContent;
+		}
+		k = k.nextSibling;
+	}
+	
+	var shader;
+	if (shaderScript.type == "x-shader/x-fragment") {
+		shader = gl.createShader(gl.FRAGMENT_SHADER);
+	} else if (shaderScript.type == "x-shader/x-vertex") {
+		shader = gl.createShader(gl.VERTEX_SHADER);
+	} else {
+		return null;
+	}
+	gl.shaderSource(shader, str);
+	gl.compileShader(shader);
+	
+	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		alert(gl.getShaderInfoLog(shader));
+		return null;
+	}
+	
+	return shader;
+}
+
+var mvMatrix = mat4.create();
+var pMatrix = mat4.create();
+
+function setMatrixUniforms() {
+	gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+	gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
 }
 
 var trianglePosBuffer;
@@ -24,14 +118,14 @@ function initBuffers() {
 	var vertices = [
 		0, 1, 0,
 		-1, -1, 0,
-		0, -1, 0
+		1, -1, 0
 	];
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 	trianglePosBuffer.itemSize = 3;
 	trianglePosBuffer.numItems = 3;
 	
 	squarePosBuffer = gl.createBuffer();
-	glBindBuffer(gl.ARRAY_BUFFER, squarePosBuffer);
+	gl.bindBuffer(gl.ARRAY_BUFFER, squarePosBuffer);
 	vertices = [
 		1, 1, 0,
 		-1, 1, 0,
@@ -43,20 +137,66 @@ function initBuffers() {
 	squarePosBuffer.numItems = 4;
 }
 
+function draw() {
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	mat4.identity(mvMatrix);
+	
+	mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
+	gl.bindBuffer(gl.ARRAY_BUFFER, trianglePosBuffer);
+	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, trianglePosBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	setMatrixUniforms();
+	gl.drawArrays(gl.TRIANGLES, 0, trianglePosBuffer.numItems);
+	mat4.translate(mvMatrix, [3, 0, 0]);
+	setMatrixUniforms();
+	gl.bindBuffer(gl.ARRAY_BUFFER, squarePosBuffer);
+	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squarePosBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, squarePosBuffer.numItems);
+}
+
+var fps = 60;
+// request frame function for browser support
+// copied from google webgl utils
+window.requestFrame = (function() {
+	return 	window.requestAnimationFrame ||
+			window.webkitRequestAnimationFrame ||
+			window.mozRequestAnimationFrame ||
+			window.oRequestAnimationFrame ||
+			window.msRequestAnimationFrame ||
+			function(callback, element) {
+				setTimeout(callback, 1000/fps);
+			}
+})();
+var currenttime;
+function tick() {
+	setTimeout(function() {
+		// note: mozRequestAnimationFrame only supported in Firefox
+		// need to do something else for other browsers
+		requestFrame(tick);
+		var now = new Date().getTime();
+		var dt = now - (currenttime || now);
+		currenttime = now;
+		// dt is now milliseconds
+		draw();
+	}, 1000 / fps);
+}
+
 function webGLStart() {
 	var canvas = document.getElementById("testcanvas");
 	initGL(canvas);
 	initShaders();
 	initBuffers();
 	
-	gl.clearColor(0, 0, 0, 0);
+	gl.clearColor(0, 0, 0, 1.0);
 	gl.enable(gl.DEPTH_TEST);
-	
-	draw();
+
+	tick();
 }
 </script>
 
-<body onload="webGLStart()">
-<canvas id="testcanvas" style="border: none;" width="500" height="500"></canvas>
+</head>
+
+<body onload="webGLStart();">
+<canvas id="testcanvas" style="border: none; width: 100%; height: 100%; margin: 0px"></canvas>
 </body>
 </html>
