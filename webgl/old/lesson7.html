@@ -9,11 +9,10 @@
 	varying vec3 v_Lighting;
 	varying vec2 v_TexCoord;
 	uniform sampler2D texture;
-	uniform float alpha;
 	
 	void main(void) {
 		vec4 texColor = texture2D(texture, v_TexCoord);
-		gl_FragColor = vec4(texColor.rgb * v_Lighting, texColor.a * alpha);
+		gl_FragColor = vec4(texColor.rgb * v_Lighting, texColor.a);
 	}
 </script>
 <script id="shader-vs" type="x-shader/x-vertex">
@@ -41,7 +40,7 @@
 			v_Lighting = vec3(1);
 		} else {
 			vec3 trans_Normal = normalMatrix * in_Normal;
-			float directionalLighting = min(max(dot(trans_Normal, lightDir), 0.0), 1.0);
+			float directionalLighting = max(dot(trans_Normal, lightDir), 0.0);
 			v_Lighting = ambientColor + dirColor * directionalLighting;
 		}
 	}
@@ -103,7 +102,6 @@ function initShaders() {
 	shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "ambientColor");
 	shaderProgram.lightDirUniform = gl.getUniformLocation(shaderProgram, "lightDir");
 	shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "dirColor");
-	shaderProgram.alphaUniform = gl.getUniformLocation(shaderProgram, "alpha");
 }
 
 function getShader(gl, id) {
@@ -340,42 +338,19 @@ function initTextures() {
 	texture.image.src = "yotsuba.png";
 }
 
-var stars = [];
-
 var xRot = 0;
 var yRot = 0;
 var zPos = -5;
 var xSpeed = 0;
 var ySpeed = 0;
-var spin = 0;
 function draw() {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	
 	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
 	mat4.identity(mvMatrix);
-	mat4.rotate(mvMatrix, degToRad(pitch), [1, 0, 0]);
-	mat4.rotate(mvMatrix, degToRad(yaw), [0, 1, 0]);
 	mat4.translate(mvMatrix, [0, 0, zPos]);
-
-	//~ for (var i in stars) {
-		//~ stars[i].draw(xRot, yRot, spin);
-	//~ }
-	drawBox();
-}
-
-function drawBox() {
+	mat4.rotate(mvMatrix, degToRad(xRot), [1, 0, 0]);
+	mat4.rotate(mvMatrix, degToRad(yRot), [0, 1, 0]);
 	setMatrixUniforms();
-	var blending = document.getElementById("transparency").checked;
-	var alpha = 0.25;
-	if (blending) {
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		gl.enable(gl.BLEND);
-		gl.disable(gl.DEPTH_TEST);
-	} else {
-		gl.disable(gl.BLEND);
-		gl.enable(gl.DEPTH_TEST);
-		var alpha = 1.0;
-	}
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubePosBuffer);
 	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubePosBuffer.itemSize, gl.FLOAT, false, 0, 0);
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeTexBuffer);
@@ -411,51 +386,12 @@ function drawBox() {
 			parseFloat(document.getElementById("directionalB").value)
 		);
 	}
-	gl.uniform1f(shaderProgram.alphaUniform, alpha);
 	gl.drawElements(gl.TRIANGLES, cubeIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
 
 function animate(dt) {
 	xRot += (xSpeed * dt);
 	yRot += (ySpeed * dt);
-	
-	for (var i in stars) {
-		stars[i].animate(dt);
-	}
-}
-
-function Star(startingDistance, rotationSpeed) {
-	this.angle = 0;
-	this.dist = startingDistance;
-	this.rotationSpeed = rotationSpeed;
-}
-
-Star.prototype.draw = function(xRot, yRot, spin) {
-	mvPushMatrix();
-	mat4.rotate(mvMatrix, degToRad(this.angle), [0, 1, 0]);
-	mat4.translate(mvMatrix, [this.dist, 0, 0]);
-	mat4.scale(mvMatrix, [0.1, 0.1, 0.1]);
-	mat4.rotate(mvMatrix, degToRad(-this.angle), [0, 1, 0]);
-	mat4.rotate(mvMatrix, degToRad(xRot), [1, 0, 0]);
-	mat4.rotate(mvMatrix, degToRad(yRot), [0, 1, 0]);
-	mat4.rotate(mvMatrix, degToRad(spin), [0, 0, 1]);
-	drawBox();
-	mvPopMatrix();
-}
-
-Star.prototype.animate = function(dt) {
-	this.angle += this.rotationSpeed * 0.2 * dt;
-	this.dist -= 0.002 * dt;
-	if (this.dist < 0) {
-		this.dist += 5;
-	}
-}
-
-function initWorld() {
-	var num = 50;
-	for (var i = 0; i < num; i++) {
-		stars.push(new Star((i / num) * 5, i / num));
-	}
 }
 
 var fps = 60;
@@ -486,7 +422,7 @@ function tick() {
 		animate(dt);
 	}, 1000 / fps);
 }
-var position = [0,0,0];
+
 var keyBuffer = {};
 function onKeyDown(event) {
 	keyBuffer[event.keyCode] = true;
@@ -500,14 +436,11 @@ function handleKeys(dt) {
 	if (keyBuffer[87]) {
 		// w
 		zPos += 0.01 * dt;
-		position[2] += 0.01*dt;
 	}
 	if (keyBuffer[83]) {
 		// s
 		zPos -= 0.01 * dt;
-		position[2] -= 0.01*dt;
 	}
-	// add A and D
 	if (keyBuffer[38]) {
 		// up arrow
 		xSpeed -= 0.001 * dt;
@@ -530,58 +463,18 @@ function handleKeys(dt) {
 	ySpeed = Math.max(ySpeed, -0.1);
 }
 
-var pitch = 0;
-var yaw = 0;
-var mouse = {};
-
-function onMouseDown(event) {
-	mouse[event.button] = true;
-	// 0 is left, 1 is middle, 2 is right
-}
-
-function onMouseUp(event) {
-	mouse[event.button] = false;
-}
-
-function onMouseMove(event) {
-	if(!mouse[0]) {
-		mouse["x"] = event.clientX;
-		mouse["y"] = event.clientY;
-		return;
-	}
-	var newx = event.clientX;
-	var newy = event.clientY;
-	var dx = newx - mouse["x"];
-	var dy = newy - mouse["y"];
-	yaw += 0.1 * dx;
-	pitch += 0.1 * dy;
-	pitch = Math.min(Math.max(pitch, -90), 90);
-	
-	mouse["x"] = newx;
-	mouse["y"] = newy;
-}
-
 function webGLStart() {
 	var canvas = document.getElementById("testcanvas");
 	initGL(canvas);
 	initShaders();
 	initBuffers();
 	initTextures();
-	initWorld();
 	
 	gl.clearColor(0, 0, 0, 1.0);
 	gl.enable(gl.DEPTH_TEST);
 	
 	document.onkeydown = onKeyDown;
 	document.onkeyup = onKeyUp;
-	canvas.onmousedown = onMouseDown;
-	document.onmouseup = onMouseUp;
-	document.onmousemove = onMouseMove;
-	mouse["x"] = 0;
-	mouse["y"] = 0;
-	
-	var ui = document.getElementById("uiwrapper");
-	ui.style.display="block";
 
 	tick();
 }
@@ -591,14 +484,8 @@ function webGLStart() {
 
 <body onload="webGLStart();">
 <canvas id="testcanvas" style="border: none; width: 100%; height: 100%; margin: 0px"></canvas>
-<div id="loadingtext" style="position: absolute; left: 10px; top: 10px; z-index: 1">loading...</div>
-<div id="uiwrapper" style="display: none;">
-	<div style="position: absolute; color: white; background-color: rgba(100, 100, 100, 0.25); left: 10px; top: 10px; z-index: 1">
-		<input type="checkbox" id="lighting" checked /> Use lighting<br/>
-		<input type="checkbox" id="transparency" checked /> Transparency On<br/>
-	</div>
-</div>
 <br/>
+<input type="checkbox" id="lighting" checked /> Use lighting<br/>
 <h2>Directional light:</h2>
 <table style="border: 0; padding: 10px;">
 	<tr>
