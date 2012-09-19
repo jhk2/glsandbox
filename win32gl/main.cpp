@@ -1,8 +1,23 @@
 #include <windows.h>
 #include <gl/gl.h>
 #include <stdio.h>
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 void (__stdcall*glUseProgram) (unsigned int);
+
+void setPerspective(double fovy, double aspect, double zNear, double zFar)
+{
+	double xmin, xmax, ymin, ymax;
+	ymax = zNear * tan(fovy * M_PI / 360.0);
+	ymin = -ymax;
+	xmin = ymin * aspect;
+	xmax = ymax * aspect;
+	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+}
 
 void renderGL()
 {
@@ -16,6 +31,18 @@ void renderGL()
 	glVertex2f(1, -1);
 	glEnd();
 	*/
+	glColor3f(1, 1, 1);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(0, 1);
+	glVertex2f(-1, -1);
+	glVertex2f(1, -1);
+	glEnd();
+	glBegin(GL_QUADS);
+	glVertex2f(1, 1);
+	glVertex2f(-1, 1);
+	glVertex2f(1, -1);
+	glVertex2f(-1, -1);
+	glEnd();
 	glUseProgram(0);
 }
 
@@ -33,6 +60,7 @@ void initGL()
 void resizeGL(unsigned int width, unsigned int height)
 {
 	glViewport(0, 0, width, height);
+	setPerspective(45, width/height, 0.1, 100.0);
 }
 
 const char g_windowClass[] = "glSandboxWindowClass";
