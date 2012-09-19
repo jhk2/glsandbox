@@ -7,7 +7,40 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+bool g_running = true;
+// front and back buffer keys
+unsigned int frontKeyBuffer = 0;
+bool keys[2][256];
+
 void (__stdcall*glUseProgram) (unsigned int);
+
+void renderGL()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//* draw immediate scene
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslatef(-1.5f, 0, -6);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(0, 1);
+	glVertex2f(-1, -1);
+	glVertex2f(1, -1);
+	glEnd();
+	glTranslatef(3, 0, 0);
+	glBegin(GL_QUADS);
+	glVertex2f(-1, 1);
+	glVertex2f(1, 1);
+	glVertex2f(1, -1);
+	glVertex2f(-1, -1);
+	glEnd();
+	//*/ end immediate scene
+	glUseProgram(0);
+}
+
+void loadFunctions()
+{
+	glUseProgram = (void(__stdcall*)(unsigned int)) wglGetProcAddress("glUseProgram");
+}
 
 void setPerspective(double fovy, double aspect, double zNear, double zFar)
 {
@@ -19,48 +52,81 @@ void setPerspective(double fovy, double aspect, double zNear, double zFar)
 	glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
 }
 
-void renderGL()
+void resizeGL(unsigned int width, unsigned int height)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	/*
-	glColor3f(1, 1, 1);
-	glBegin(GL_QUADS);
-	glVertex2f(0, -1);
-	glVertex2f(0, 1);
-	glVertex2f(1, 1);
-	glVertex2f(1, -1);
-	glEnd();
-	*/
-	glColor3f(1, 1, 1);
-	glBegin(GL_TRIANGLES);
-	glVertex2f(0, 1);
-	glVertex2f(-1, -1);
-	glVertex2f(1, -1);
-	glEnd();
-	glBegin(GL_QUADS);
-	glVertex2f(1, 1);
-	glVertex2f(-1, 1);
-	glVertex2f(1, -1);
-	glVertex2f(-1, -1);
-	glEnd();
-	glUseProgram(0);
+	glViewport(0, 0, width, height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	setPerspective(45, (float)width/height, 0.1, 100.0);
 }
 
-void initGL()
+void initGL(unsigned int width, unsigned int height)
 {
 	glClearColor(0, 0, 0, 0);
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glDisable(GL_DEPTH_TEST);
-	glMatrixMode(GL_PROJECTION);
+	resizeGL(width, height);
+	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	
-	glUseProgram = (void(__stdcall*)(unsigned int)) wglGetProcAddress("glUseProgram");
+	loadFunctions();
 }
 
-void resizeGL(unsigned int width, unsigned int height)
+bool isKeyDown(unsigned int code)
 {
-	glViewport(0, 0, width, height);
-	setPerspective(45, width/height, 0.1, 100.0);
+	return keys[frontKeyBuffer][code];
+}
+
+bool isKeyPress(unsigned int code)
+{
+	return keys[frontKeyBuffer][code] && !keys[1-frontKeyBuffer][code];
+}
+
+bool isKeyRelease(unsigned int code)
+{
+	return !keys[frontKeyBuffer][code] && keys[1-frontKeyBuffer][code];
+}
+
+void handleKeys()
+{
+	if(isKeyPress(0x31))
+		glColor3f(1, 0, 0);
+	if(isKeyPress(0x32))
+		glColor3f(0, 1, 0);
+	if(isKeyRelease(0x33))
+		glColor3f(0, 0, 1);
+}
+
+void swapKeyBuffers()
+{
+	frontKeyBuffer = 1 - frontKeyBuffer;
+	memcpy(&keys[frontKeyBuffer][0], &keys[1-frontKeyBuffer][0], sizeof(keys[0]));
+}
+
+void extendPixelFormat()
+{
+	// TODO: format this nicely so that it manages dummy contexts and everything correctly
+	/*
+	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+	if(!wglChoosePixelFormatARB)
+	{
+		printf("wgl choose pixel format not supported?\n");
+	}
+	// using wglchoosepixelformat
+	const int attribList[] = 
+	{
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		0,
+	}
+	
+	int iPixelFormat, numFormats;
+	wglChoosePixelFormat(hdc, attribList, NULL, 1, &iPixelFormat, &numFormats);
+	*/
 }
 
 const char g_windowClass[] = "glSandboxWindowClass";
@@ -70,10 +136,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch(msg)
 	{
 		case WM_CLOSE:
+			g_running = false;
 			DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
+			break;
+		case WM_KEYDOWN:
+			keys[frontKeyBuffer][wParam] = true;
+			break;
+		case WM_KEYUP:
+			keys[frontKeyBuffer][wParam] = false;
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -130,6 +203,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 	
+	HDC hdc;
+	if(!(hdc = GetDC(hwnd)))
+		printf("GetDC failed\n");
+	
+	//* old set pixel format
 	// set pixel format
 	PIXELFORMATDESCRIPTOR pfd = 
 	{
@@ -144,14 +222,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		PFD_MAIN_PLANE,
 		0, 0, 0, 0
 	};
+	
 	// get available matching pixel format
 	int iPixelFormat;
-	HDC hdc;
-	if(!(hdc = GetDC(hwnd)))
-		printf("GetDC failed\n");
-	
+
 	if(!(iPixelFormat = ChoosePixelFormat(hdc, &pfd)))
 		printf("ChoosePixelFormat failed\n");
+	//*/
 	
 	// assign pixel format to device context
 	if(!(SetPixelFormat(hdc, iPixelFormat, &pfd)))
@@ -167,14 +244,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ShowWindow(hwnd, nCmdShow);
 	SetForegroundWindow(hwnd);
 	SetFocus(hwnd);
-	resizeGL(winWidth, winHeight);
 	UpdateWindow(hwnd);
-	
-	initGL();
+
+	initGL(winWidth, winHeight);
 	printf("finished init, starting main loop\n");
 	// main loop
-	bool running = true;
-	while(running)
+	while(g_running)
 	{
 		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
@@ -185,13 +260,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 			else
 			{
-				running = false;
+				g_running = false;
 				break;
 			}
 		}
 		
 		// draw stuff
 		renderGL();
+		handleKeys();
+		g_running &= !keys[frontKeyBuffer][VK_ESCAPE];
+		swapKeyBuffers();
 		SwapBuffers(hdc);
 		
 	}
