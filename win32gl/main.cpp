@@ -1,5 +1,7 @@
 #include <windows.h>
 #include <gl/gl.h>
+#include <gl/glext.h>
+#include <gl/wglext.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -100,33 +102,6 @@ void swapKeyBuffers()
 {
 	frontKeyBuffer = 1 - frontKeyBuffer;
 	memcpy(&keys[frontKeyBuffer][0], &keys[1-frontKeyBuffer][0], sizeof(keys[0]));
-}
-
-void extendPixelFormat()
-{
-	// TODO: format this nicely so that it manages dummy contexts and everything correctly
-	/*
-	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-	if(!wglChoosePixelFormatARB)
-	{
-		printf("wgl choose pixel format not supported?\n");
-	}
-	// using wglchoosepixelformat
-	const int attribList[] = 
-	{
-		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-		WGL_COLOR_BITS_ARB, 32,
-		WGL_DEPTH_BITS_ARB, 24,
-		WGL_STENCIL_BITS_ARB, 8,
-		0,
-	}
-	
-	int iPixelFormat, numFormats;
-	wglChoosePixelFormat(hdc, attribList, NULL, 1, &iPixelFormat, &numFormats);
-	*/
 }
 
 const char g_windowClass[] = "glSandboxWindowClass";
@@ -241,6 +216,97 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if(!(wglMakeCurrent(hdc, context)))
 		printf("wglMakeCurrent failed\n");
 	
+	// Now we want an updated pixel format and context
+	//*
+	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+	if(!wglChoosePixelFormatARB)
+	{
+		printf("wgl choose pixel format not supported?\n");
+	}
+	
+	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+	if(!wglCreateContextAttribsARB)
+		printf("wglCreateContextAttribsARB undefined\n");
+	
+	// using wglchoosepixelformat
+	const int attribList[] = 
+	{
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		0,
+	};
+	
+	int ePixelFormat;
+	unsigned int numFormats;
+	int valid = wglChoosePixelFormatARB(hdc, attribList, NULL, 1, &ePixelFormat, &numFormats);
+	
+	if (valid && numFormats >= 1)
+	{
+		// we have a valid format
+		printf("we have a valid format\n");
+	} else {
+		printf("wglchoosepixel format didn't find a valid format\n");
+	}
+	// if we found a valid format, it is stored in ePixelFormat
+	// delete old rendering context
+	int delc = wglDeleteContext(context);
+	if (!delc)
+		printf("failed to delete old context\n");
+	// release device context
+	ReleaseDC(hwnd, hdc);
+	// destroy the window
+	DestroyWindow(hwnd);
+	
+	while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+	{
+		// get rid of the first destroy message so it doesn't screw up later
+		int temp = GetMessage(&msg, NULL, 0, 0);
+		if (temp != 0) {
+			printf("whoops, something other than destroy was in message queue after destroywindow: (%i)\n", temp);
+		} else {
+			printf("disposed of the first destory message\n");
+		}
+	}
+	
+	// now, make it all again
+	hwnd = CreateWindowEx(
+		WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
+		g_windowClass,
+		"Title Window",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT, winWidth, winHeight,
+		NULL, NULL, hInstance, NULL);
+	// get the new device context
+	if(!(hdc = GetDC(hwnd)))
+		printf("second GetDC failed\n");
+	// set the pixel format the the extended one we got earlier
+	if (!SetPixelFormat(hdc, ePixelFormat, &pfd))
+	{
+		// failed to set pixel format
+		printf("failed to set extended pixel format\n");
+	}
+	
+	// create extended opengl rendering context
+	int contextAttribs[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		0
+	};
+	
+	
+	if(!(context = wglCreateContextAttribsARB(hdc, NULL, contextAttribs)))
+		printf("second wglCreateContext failed\n");
+	if(!(wglMakeCurrent(hdc, context)))
+		printf("second wglMakeCurrent failed\n");
+	//*/
+	
 	ShowWindow(hwnd, nCmdShow);
 	SetForegroundWindow(hwnd);
 	SetFocus(hwnd);
@@ -253,13 +319,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	{
 		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
-			if(GetMessage(&msg, NULL, 0, 0) > 0)
+			int temp = GetMessage(&msg, NULL, 0, 0);
+			if(temp > 0)
 			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
 			else
 			{
+				printf("getmessage returned nonpositive: (%i)\n", temp);
 				g_running = false;
 				break;
 			}
@@ -273,6 +341,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		SwapBuffers(hdc);
 		
 	}
+	printf("quitting\n");
 	
 	//FreeConsole();
 	// delete the rendering context
