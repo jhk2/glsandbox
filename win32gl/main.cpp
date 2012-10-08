@@ -4,6 +4,10 @@
 #include <gl/wglext.h>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -14,12 +18,48 @@ bool g_running = true;
 unsigned int frontKeyBuffer = 0;
 bool keys[2][256];
 
-void (__stdcall*glUseProgram) (unsigned int);
+// functions
+PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLGENBUFFERSPROC glGenBuffers;
+PFNGLBUFFERDATAPROC glBufferData;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+//PFNGLDRAWELEMENTSPROC glDrawElements;
+
+// models
+//unsigned int vao;
+unsigned int vbuf;
+unsigned int nbuf;
+unsigned int ibuf;
+unsigned int ibufcount;
+
+// structs
+struct fl3 {
+	union {
+		struct {
+			float x, y, z;
+		};
+		float xyz[3];
+	};
+};
+
+struct fl2 {
+	union {
+		struct {
+			float x, y;
+		};
+		struct {
+			float s, t;
+		};
+		float xy[2];
+		float st[2];
+	};
+};
 
 void renderGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//* draw immediate scene
+	/* draw immediate scene
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(-1.5f, 0, -6);
@@ -35,13 +75,98 @@ void renderGL()
 	glVertex2f(1, -1);
 	glVertex2f(-1, -1);
 	glEnd();
-	//*/ end immediate scene
-	glUseProgram(0);
+	// end immediate scene */
+	
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslatef(0, 0, -10);
+	glBindBuffer(GL_ARRAY_BUFFER, vbuf);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glDrawElements(GL_TRIANGLES, ibufcount, GL_UNSIGNED_INT, 0);
 }
 
 void loadFunctions()
 {
-	glUseProgram = (void(__stdcall*)(unsigned int)) wglGetProcAddress("glUseProgram");
+	//glUseProgram = (void(__stdcall*)(unsigned int)) wglGetProcAddress("glUseProgram");
+	glBindBuffer = (PFNGLBINDBUFFERPROC) wglGetProcAddress("glBindBuffer");
+	glGenBuffers = (PFNGLGENBUFFERSPROC) wglGetProcAddress("glGenBuffers");
+	glBufferData = (PFNGLBUFFERDATAPROC) wglGetProcAddress("glBufferData");
+	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) wglGetProcAddress("glEnableVertexAttribArray");
+	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) wglGetProcAddress("glVertexAttribPointer");
+	//glDrawElements = (PFNGLDRAWELEMENTSPROC) wglGetProcAddress("glDrawElements");
+}
+
+void loadResources()
+{
+	printf("loading model\n");
+	std::ifstream myfile ("veyron.obj");
+	std::string line;
+	std::vector<fl3> verts;
+	std::vector<fl3> norms;
+	std::vector<unsigned int> inds;
+	if (myfile.is_open()) {
+		printf("opened file\n");
+		// read in the obj file
+		while (myfile.good())
+		{
+			std::getline(myfile, line);
+			// line has the contents
+			std::string sub = line.substr(0, 2);
+			if (!sub.compare("v ")) {
+				// it's a vertex
+				fl3 v;
+				sscanf(line.c_str(), "%*s %f %f %f", &v.x, &v.y, &v.z);
+				verts.push_back(v);
+			} else if (!sub.compare("vn")) {
+				// normal
+				fl3 n;
+				sscanf(line.c_str(), "%*s %f %f %f", &n.x, &n.y, &n.z);
+				norms.push_back(n);
+			} else if (!sub.compare("f ")) {
+				// it's a face
+				unsigned int q[4];
+				sscanf(line.c_str(), "%*s %u//%*u %u//%*u %u//%*u %u//%*u", &q[0], &q[1], &q[2], &q[3]);
+				for(int i = 0; i < 4; i++)
+					inds.push_back(q[i]);
+			} else {
+				
+			}
+		}
+	} else {
+		printf("load model failed\n");
+	}
+	myfile.close();
+	printf("done model reading\n");
+	
+	ibufcount = inds.size();
+	printf("read %i indices\n", ibufcount);
+	printf("read %i verts\n", verts.size());
+	printf("read %i norms\n", norms.size());
+	
+	// we should have all of our normals, verts, and indices
+	// make a gl buffer for them
+	
+	//glGenVertexArrays(1, &vao);
+	//glBindVertexArray(vao);
+	
+	glGenBuffers(1, &vbuf);
+	glBindBuffer(GL_ARRAY_BUFFER, vbuf);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(fl3)*verts.size(), verts.data(), GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	//glEnableVertexAttribArray(0);
+	
+	glGenBuffers(1, &nbuf);
+	glBindBuffer(GL_ARRAY_BUFFER, nbuf);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(fl3)*verts.size(), norms.data(), GL_STATIC_DRAW);
+	
+	glGenBuffers(1, &ibuf);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*ibufcount, inds.data(), GL_STATIC_DRAW);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void setPerspective(double fovy, double aspect, double zNear, double zFar)
@@ -71,6 +196,7 @@ void initGL(unsigned int width, unsigned int height)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	loadFunctions();
+	loadResources();
 }
 
 bool isKeyDown(unsigned int code)
@@ -297,6 +423,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
 		WGL_CONTEXT_MINOR_VERSION_ARB, 2,
 		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+		//WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		0
 	};
 	
