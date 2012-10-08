@@ -26,7 +26,6 @@ PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 //PFNGLDRAWELEMENTSPROC glDrawElements;
 
-// models
 //unsigned int vao;
 unsigned int vbuf;
 unsigned int nbuf;
@@ -56,6 +55,11 @@ struct fl2 {
 	};
 };
 
+// models
+std::vector<fl3> verts;
+std::vector<fl3> norms;
+std::vector<unsigned int> inds;
+
 void renderGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -80,6 +84,9 @@ void renderGL()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0, 0, -10);
+	glRotatef(30, 1, 0, 0);
+	glScalef(0.02, 0.02, 0.02);
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbuf);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
 	glEnableVertexAttribArray(0);
@@ -99,13 +106,10 @@ void loadFunctions()
 }
 
 void loadResources()
-{
+{	
 	printf("loading model\n");
-	std::ifstream myfile ("veyron.obj");
+	std::ifstream myfile ("lego.obj");
 	std::string line;
-	std::vector<fl3> verts;
-	std::vector<fl3> norms;
-	std::vector<unsigned int> inds;
 	if (myfile.is_open()) {
 		printf("opened file\n");
 		// read in the obj file
@@ -119,17 +123,22 @@ void loadResources()
 				fl3 v;
 				sscanf(line.c_str(), "%*s %f %f %f", &v.x, &v.y, &v.z);
 				verts.push_back(v);
+				//printf("added vert: %f, %f, %f\n", v.x, v.y, v.z);
 			} else if (!sub.compare("vn")) {
 				// normal
 				fl3 n;
 				sscanf(line.c_str(), "%*s %f %f %f", &n.x, &n.y, &n.z);
 				norms.push_back(n);
+				//printf("added norm: %f, %f, %f\n", n.x, n.y, n.z);
 			} else if (!sub.compare("f ")) {
 				// it's a face
-				unsigned int q[4];
-				sscanf(line.c_str(), "%*s %u//%*u %u//%*u %u//%*u %u//%*u", &q[0], &q[1], &q[2], &q[3]);
-				for(int i = 0; i < 4; i++)
-					inds.push_back(q[i]);
+				unsigned int q[3];
+				sscanf(line.c_str(), "%*s %u//%*u %u//%*u %u//%*u", &q[0], &q[1], &q[2]);
+				//sscanf(line.c_str(), "%*s %u %u %u", &q[0], &q[1], &q[2]);
+				//printf("adding indices: %u, %u, %u\n", q[0], q[1], q[2]);
+				// obj is 1 indexed, so subtract 1
+				for(int i = 0; i < 3; i++)
+					inds.push_back(q[i]-1);
 			} else {
 				
 			}
@@ -153,17 +162,20 @@ void loadResources()
 	
 	glGenBuffers(1, &vbuf);
 	glBindBuffer(GL_ARRAY_BUFFER, vbuf);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(fl3)*verts.size(), verts.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(fl3)*verts.size(), &verts[0], GL_STATIC_DRAW);
 	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	//glEnableVertexAttribArray(0);
+	printf("sizeof verts: %i\n", sizeof(fl3)*verts.size());
 	
 	glGenBuffers(1, &nbuf);
 	glBindBuffer(GL_ARRAY_BUFFER, nbuf);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(fl3)*verts.size(), norms.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(fl3)*norms.size(), &norms[0], GL_STATIC_DRAW);
+	printf("sizeof norms: %i\n", sizeof(fl3)*norms.size());
 	
 	glGenBuffers(1, &ibuf);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*ibufcount, inds.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*inds.size(), &inds[0], GL_STATIC_DRAW);
+	printf("sizeof inds: %i\n", sizeof(unsigned int)*inds.size());
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -197,6 +209,10 @@ void initGL(unsigned int width, unsigned int height)
 	glLoadIdentity();
 	loadFunctions();
 	loadResources();
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
+	//glFrontFace(GL_CW);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 }
 
 bool isKeyDown(unsigned int code)
