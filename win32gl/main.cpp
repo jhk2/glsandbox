@@ -17,6 +17,8 @@ bool g_running = true;
 // front and back buffer keys
 unsigned int frontKeyBuffer = 0;
 bool keys[2][256];
+bool mouse[2][3];
+int g_mouse_x, g_mouse_y;
 
 // functions
 PFNGLBINDBUFFERPROC glBindBuffer;
@@ -40,6 +42,25 @@ struct fl3 {
 		};
 		float xyz[3];
 	};
+	fl3() : x(0), y(0), z(0) {};
+	fl3(float nx, float ny, float nz) : x(nx), y(ny), z(nz) {};
+	void fl3::normalize() 
+	{
+		float magnitude = sqrt(x*x + y*y + z*z);
+		if (magnitude == 0) 
+			return;
+		x /= magnitude;
+		y /= magnitude;
+		z /= magnitude;
+	};
+	fl3 fl3::operator*(const float &scalar)
+	{
+		return fl3(x*scalar, y*scalar, z*scalar);
+	};
+	fl3 fl3::operator+(const fl3 &other)
+	{
+		return fl3(x+other.x, y+other.y, z+other.z);
+	}
 };
 
 struct fl2 {
@@ -59,6 +80,23 @@ struct fl2 {
 std::vector<fl3> verts;
 std::vector<fl3> norms;
 std::vector<unsigned int> inds;
+
+// camera stuff
+fl2 g_cam_rot;
+fl3 g_cam_pos;
+
+// time calculation function
+long long currentMillis() {
+	LARGE_INTEGER freq;
+	BOOL use_qpc = QueryPerformanceFrequency(&freq);
+	if (use_qpc) {
+		LARGE_INTEGER now;
+		QueryPerformanceCounter(&now);
+		return (1000LL * now.QuadPart) / freq.QuadPart;
+	} else {
+		return GetTickCount();
+	}
+}
 
 void renderGL()
 {
@@ -83,10 +121,11 @@ void renderGL()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0, 0, -10);
-	glRotatef(30, 1, 0, 0);
+	glRotatef(g_cam_rot.x, 1, 0, 0);
+	glRotatef(g_cam_rot.y, 0, 1, 0);
+	glTranslatef(g_cam_pos.x, g_cam_pos.y, g_cam_pos.z);
 	glScalef(0.02, 0.02, 0.02);
-
+	
 	glBindBuffer(GL_ARRAY_BUFFER, vbuf);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf);
 	glEnableVertexAttribArray(0);
@@ -213,6 +252,12 @@ void initGL(unsigned int width, unsigned int height)
 	//glFrontFace(GL_CW);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	// set up default camera
+	g_cam_pos.x = 0;
+	g_cam_pos.y = 0;
+	g_cam_pos.z = -10;
+	g_cam_rot.x = 0;
+	g_cam_rot.y = 0;
 }
 
 bool isKeyDown(unsigned int code)
@@ -230,20 +275,110 @@ bool isKeyRelease(unsigned int code)
 	return !keys[frontKeyBuffer][code] && keys[1-frontKeyBuffer][code];
 }
 
-void handleKeys()
+float degToRad(const float degrees)
 {
+	return M_PI * (degrees / 180);
+}
+
+#define MOVESCALE 0.02f
+
+void handleKeys(float dt)
+{
+	/*
 	if(isKeyPress(0x31))
 		glColor3f(1, 0, 0);
 	if(isKeyPress(0x32))
 		glColor3f(0, 1, 0);
 	if(isKeyRelease(0x33))
 		glColor3f(0, 0, 1);
+	*/
+	fl3 tomove;
+	if(isKeyDown(0x57)) {
+		// w key
+		tomove.z -= cos(degToRad(g_cam_rot.y));
+		tomove.x += sin(degToRad(g_cam_rot.y));
+		tomove.y -= sin(degToRad(g_cam_rot.x));
+	}
+	if(isKeyDown(0x53)) {
+		// s key
+		tomove.z += cos(degToRad(g_cam_rot.y));
+		tomove.x -= sin(degToRad(g_cam_rot.y));
+		tomove.y += sin(degToRad(g_cam_rot.x));
+	}
+	if(isKeyDown(0x41)) {
+		// a key
+		tomove.z -= sin(degToRad(g_cam_rot.y));
+		tomove.x -= cos(degToRad(g_cam_rot.y));
+	}
+	if(isKeyDown(0x44)) {
+		// d key
+		tomove.z += sin(degToRad(g_cam_rot.y));
+		tomove.x += cos(degToRad(g_cam_rot.y));
+	}
+	if(isKeyDown(VK_SPACE)) {
+		tomove.y += 1;
+	}
+	if(isKeyDown(VK_CONTROL)) {
+		tomove.y -= 1;
+	}
+	tomove.normalize();
+	tomove = tomove * MOVESCALE * dt;
+	//printf("tomove is %g, %g, %g\n", tomove.x, tomove.y, tomove.z);
+	//printf("dt is %g\n", dt);
+	g_cam_pos = g_cam_pos + tomove;
 }
 
 void swapKeyBuffers()
 {
 	frontKeyBuffer = 1 - frontKeyBuffer;
 	memcpy(&keys[frontKeyBuffer][0], &keys[1-frontKeyBuffer][0], sizeof(keys[0]));
+	memcpy(&mouse[frontKeyBuffer][0], &mouse[1-frontKeyBuffer][0], sizeof(mouse[0]));
+}
+
+bool isMouseDown(const unsigned int code)
+{
+	return mouse[frontKeyBuffer][code];
+}
+
+bool isMousePress(const unsigned int code)
+{
+	return mouse[frontKeyBuffer][code] && !mouse[1-frontKeyBuffer][code];
+}
+
+bool isMouseRelease(const unsigned int code)
+{
+	return !mouse[frontKeyBuffer][code] && mouse[1-frontKeyBuffer][code];
+}
+
+#define MOUSESCALE 0.1f
+
+void onMouseMove(int nx, int ny)
+{
+	int dx = nx - g_mouse_x;
+	int dy = ny - g_mouse_y;
+	
+	// for now, only if right click is down
+	if (isMouseDown(2)) {
+		g_cam_rot.y += MOUSESCALE * dx;
+		g_cam_rot.x += MOUSESCALE * dy;
+		// limit up/down rotation to -90 to +90 degrees
+		g_cam_rot.x = min(90, max(-90, g_cam_rot.x));
+		// limit left/right rotation to 0 -360 to 360 to prevent overflow
+		if (g_cam_rot.y > 360) {
+			g_cam_rot.y = 360 - g_cam_rot.y;
+		} else if (g_cam_rot.y < -360) {
+			g_cam_rot.y = 360 + g_cam_rot.y;
+		}
+	}
+	
+	g_mouse_x = nx;
+	g_mouse_y = ny;
+}
+
+// global update method
+void update(float dt)
+{
+	handleKeys(dt);
 }
 
 const char g_windowClass[] = "glSandboxWindowClass";
@@ -265,11 +400,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_KEYUP:
 			keys[frontKeyBuffer][wParam] = false;
 			break;
+		case WM_LBUTTONDOWN:
+			mouse[frontKeyBuffer][0] = true;
+			break;
+		case WM_LBUTTONUP:
+			mouse[frontKeyBuffer][0] = false;
+			break;
+		case WM_RBUTTONDOWN:
+			mouse[frontKeyBuffer][2] = true;
+			break;
+		case WM_RBUTTONUP:
+			mouse[frontKeyBuffer][2] = false;
+			break;
+		case WM_MBUTTONDOWN:
+			mouse[frontKeyBuffer][1] = true;
+			break;
+		case WM_MBUTTONUP:
+			mouse[frontKeyBuffer][1] = true;
+			break;
+		case WM_MOUSEMOVE:
+			// x coordinate is lower order short of lParam, y is higher order short
+			onMouseMove(LOWORD(lParam), HIWORD(lParam));
+			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 	return 0;
 }
+
+long long g_current_millis;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -454,9 +613,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetForegroundWindow(hwnd);
 	SetFocus(hwnd);
 	UpdateWindow(hwnd);
+	
+	// set initial mouse position
+	POINT p;
+	if(GetCursorPos(&p)) {
+		if (ScreenToClient(hwnd, &p)) {
+			g_mouse_x = p.x;
+			g_mouse_y = p.y;
+		} else {
+			printf("ScreenToClient failed\n");
+		}
+	} else {
+		printf("GetCursorPos failed\n");
+	}
 
 	initGL(winWidth, winHeight);
 	printf("finished init, starting main loop\n");
+	
+	g_current_millis = currentMillis();
 	// main loop
 	while(g_running)
 	{
@@ -476,9 +650,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 		}
 		
+		long long current_millis = currentMillis();
+		printf("current_millis is %i\n", current_millis);
+		float dt = g_current_millis - current_millis;
+		g_current_millis = current_millis;
+		
 		// draw stuff
 		renderGL();
-		handleKeys();
+		update(dt);
 		g_running &= !keys[frontKeyBuffer][VK_ESCAPE];
 		swapKeyBuffers();
 		SwapBuffers(hdc);
