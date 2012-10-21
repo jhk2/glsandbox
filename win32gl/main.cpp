@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -15,6 +16,7 @@
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
+#define SHADER_SRC "shader.glsl"
 
 HWND g_hwnd;
 bool g_running = true;
@@ -23,6 +25,7 @@ unsigned int frontKeyBuffer = 0;
 bool keys[2][256];
 bool mouse[2][3];
 int g_mouse_x, g_mouse_y;
+int g_hold_x, g_hold_y;
 
 // functions
 PFNGLBINDBUFFERPROC glBindBuffer;
@@ -30,6 +33,16 @@ PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBUFFERDATAPROC glBufferData;
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLCREATESHADERPROC glCreateShader;
+PFNGLSHADERSOURCEPROC glShaderSource;
+PFNGLCOMPILESHADERPROC glCompileShader;
+PFNGLCREATEPROGRAMPROC glCreateProgram;
+PFNGLLINKPROGRAMPROC glLinkProgram;
+PFNGLATTACHSHADERPROC glAttachShader;
+PFNGLUSEPROGRAMPROC glUseProgram;
+PFNGLDETACHSHADERPROC glDetachShader;
+PFNGLDELETESHADERPROC glDeleteShader;
 //PFNGLDRAWELEMENTSPROC glDrawElements;
 
 //unsigned int vao;
@@ -89,6 +102,15 @@ std::vector<unsigned int> inds;
 fl2 g_cam_rot;
 fl3 g_cam_pos;
 
+// shader
+struct Shader {
+	GLenum id;
+	std::vector<GLuint> progs;
+};
+Shader g_shader;
+// modification time for shader
+ULONGLONG g_shader_modified;
+
 // time calculation function
 long long currentMillis() {
 	LARGE_INTEGER freq;
@@ -123,6 +145,7 @@ void renderGL()
 	glEnd();
 	// end immediate scene */
 	
+	glUseProgram(g_shader.id);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(g_cam_rot.x, 1, 0, 0);
@@ -135,8 +158,94 @@ void renderGL()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glDrawElements(GL_TRIANGLES, ibufcount, GL_UNSIGNED_INT, 0);
+	glUseProgram(0);
 }
 
+void printShaderLog(GLuint id)
+{
+	int infoLogLength = 0;
+	char infoLog[1024];
+	glGetShaderInfoLog(id, 1024, &infoLogLength, infoLog);
+	if (infoLogLength > 0)
+		printf("Shader log:\n%s", infoLog);
+}
+
+void loadShaderFromSource(GLenum type, std::string sourcefile)
+{
+	std::stringstream ss;
+	std::ifstream file(sourcefile.c_str());
+	std::string line;
+	if (file.is_open() && file.good())
+	{
+		getline(file, line);
+		// skip past whitespace at the beginning
+		while (file.good() && (strcmp(line.c_str(), "\n")==0 || strcmp(line.c_str(), "")==0))
+		{
+			getline(file, line);
+		}
+		// #define the shader type
+		switch (type)
+		{
+			case GL_FRAGMENT_SHADER:
+				ss << "#define _FRAGMENT_" << std::endl;
+				break;
+			case GL_VERTEX_SHADER:
+				ss << "#define _VERTEX_" << std::endl;
+				break;
+			case GL_GEOMETRY_SHADER:
+				ss << "#define _GEOMETRY_" << std::endl;
+				break;
+			case GL_TESS_CONTROL_SHADER:
+				ss << "#define _TESSCONTROL_" << std::endl;
+				break;
+			case GL_TESS_EVALUATION_SHADER:
+				ss << "#define _TESSEVAL_" << std::endl;
+				break;
+			default:
+				break;
+		}
+		ss << line << std::endl;
+		while (file.good())
+		{
+			getline(file, line);
+			ss << line << std::endl;
+		}
+		file.close();
+		// load into gl
+		std::string str = ss.str();
+		//printf("shader source is:\n%s\n", str);
+		const int length = str.length();
+		const char *text = str.c_str();
+		GLuint id = glCreateShader(type);
+		glShaderSource(id, 1, (const char **)&text, &length);
+		glCompileShader(id);
+		printShaderLog(id);
+		glAttachShader(g_shader.id, id);
+		glDeleteShader(id);
+		g_shader.progs.push_back(id);
+	}
+}
+
+void refreshShaderProgram(std::string sourcefile)
+{
+	loadShaderFromSource(GL_VERTEX_SHADER, sourcefile);
+	loadShaderFromSource(GL_FRAGMENT_SHADER, sourcefile);
+	glLinkProgram(g_shader.id);
+}
+
+void loadShaderProgram(std::string sourcefile)
+{
+	//printf("loading shader from %s\n", sourcefile.c_str());
+	g_shader.id = glCreateProgram();
+	refreshShaderProgram(sourcefile);
+	
+	FILETIME create, access, write;
+	HANDLE fhandle = CreateFile(SHADER_SRC, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	GetFileTime(fhandle, &create, &access, &write);
+	ULONGLONG time = (((ULONGLONG) write.dwHighDateTime) << 32) + write.dwLowDateTime;
+	g_shader_modified = time;
+	CloseHandle(fhandle);
+}
 void loadFunctions()
 {
 	//glUseProgram = (void(__stdcall*)(unsigned int)) wglGetProcAddress("glUseProgram");
@@ -145,6 +254,16 @@ void loadFunctions()
 	glBufferData = (PFNGLBUFFERDATAPROC) wglGetProcAddress("glBufferData");
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) wglGetProcAddress("glEnableVertexAttribArray");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) wglGetProcAddress("glVertexAttribPointer");
+	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) wglGetProcAddress("glGetShaderInfoLog");
+	glCreateShader = (PFNGLCREATESHADERPROC) wglGetProcAddress("glCreateShader");
+	glShaderSource = (PFNGLSHADERSOURCEPROC) wglGetProcAddress("glShaderSource");
+	glCompileShader = (PFNGLCOMPILESHADERPROC) wglGetProcAddress("glCompileShader");
+	glCreateProgram = (PFNGLCREATEPROGRAMPROC) wglGetProcAddress("glCreateProgram");
+	glLinkProgram = (PFNGLLINKPROGRAMPROC) wglGetProcAddress("glLinkProgram");
+	glAttachShader = (PFNGLATTACHSHADERPROC) wglGetProcAddress("glAttachShader");
+	glUseProgram = (PFNGLUSEPROGRAMPROC) wglGetProcAddress("glUseProgram");
+	glDetachShader = (PFNGLDETACHSHADERPROC) wglGetProcAddress("glDetachShader");
+	glDeleteShader = (PFNGLDELETESHADERPROC) wglGetProcAddress("glDeleteShader");
 	//glDrawElements = (PFNGLDRAWELEMENTSPROC) wglGetProcAddress("glDrawElements");
 }
 
@@ -252,10 +371,11 @@ void initGL(unsigned int width, unsigned int height)
 	glLoadIdentity();
 	loadFunctions();
 	loadResources();
-	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
+	loadShaderProgram(SHADER_SRC);
+	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE);
 	//glFrontFace(GL_CW);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	// set up default camera
 	g_cam_pos.x = 0;
 	g_cam_pos.y = 0;
@@ -395,14 +515,18 @@ void handleMouse(float dt)
 	ScreenToClient(g_hwnd, &pt);
 	onMouseMove(pt.x, pt.y);
 	if (isMouseDown(2)) {
+		if (isMousePress(2)) {
+			g_hold_x = pt.x;
+			g_hold_y = pt.y;
+		}
 		// recenter the cursor
 		POINT pt;
-		pt.x = WINDOW_WIDTH/2;
-		pt.y = WINDOW_HEIGHT/2;
+		pt.x = g_hold_x;
+		pt.y = g_hold_y;
 		ClientToScreen(g_hwnd, &pt);
 		SetCursorPos(pt.x, pt.y);
-		g_mouse_x = WINDOW_WIDTH/2;
-		g_mouse_y = WINDOW_HEIGHT/2;
+		g_mouse_x = g_hold_x;
+		g_mouse_y = g_hold_y;
 	}
 }
 
@@ -411,6 +535,22 @@ void update(float dt)
 {
 	handleKeys(dt);
 	handleMouse(dt);
+	
+	// check for shader file refresh
+	FILETIME create, access, write;
+	HANDLE fhandle = CreateFile(SHADER_SRC, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	GetFileTime(fhandle, &create, &access, &write);
+	ULONGLONG time = (((ULONGLONG) write.dwHighDateTime) << 32) + write.dwLowDateTime;
+	if  (time > g_shader_modified) {
+		// detach old stuff
+		for(int i = 0; i < g_shader.progs.size(); i++) {
+			glDetachShader(g_shader.id, g_shader.progs.at(i));
+		}
+		g_shader.progs.clear();
+		refreshShaderProgram(SHADER_SRC);
+		g_shader_modified = time;
+	}
+	CloseHandle(fhandle);
 }
 
 const char g_windowClass[] = "glSandboxWindowClass";
