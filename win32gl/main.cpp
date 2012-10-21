@@ -13,6 +13,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
+HWND g_hwnd;
 bool g_running = true;
 // front and back buffer keys
 unsigned int frontKeyBuffer = 0;
@@ -359,6 +363,9 @@ void onMouseMove(int nx, int ny)
 	
 	// for now, only if right click is down
 	if (isMouseDown(2)) {
+		printf("old x is %i, old y is %i\n", g_mouse_x, g_mouse_y);
+		printf("new x is %i, new y is %i\n", nx, ny);
+		printf("dx is %i, dy is %i\n", dx, dy);
 		g_cam_rot.y += MOUSESCALE * dx;
 		g_cam_rot.x += MOUSESCALE * dy;
 		// limit up/down rotation to -90 to +90 degrees
@@ -369,22 +376,48 @@ void onMouseMove(int nx, int ny)
 		} else if (g_cam_rot.y < -360) {
 			g_cam_rot.y = 360 + g_cam_rot.y;
 		}
-	}
+	}	
 	
 	g_mouse_x = nx;
 	g_mouse_y = ny;
+}
+
+void handleMouse(float dt)
+{
+	// hide cursor if rmb is down
+	if (isMousePress(2)) {
+		ShowCursor(false);
+	} else if (isMouseRelease(2)) {
+		ShowCursor(true);
+	}
+	POINT pt;
+	GetCursorPos(&pt);
+	ScreenToClient(g_hwnd, &pt);
+	onMouseMove(pt.x, pt.y);
+	if (isMouseDown(2)) {
+		// recenter the cursor
+		POINT pt;
+		pt.x = WINDOW_WIDTH/2;
+		pt.y = WINDOW_HEIGHT/2;
+		ClientToScreen(g_hwnd, &pt);
+		SetCursorPos(pt.x, pt.y);
+		g_mouse_x = WINDOW_WIDTH/2;
+		g_mouse_y = WINDOW_HEIGHT/2;
+	}
 }
 
 // global update method
 void update(float dt)
 {
 	handleKeys(dt);
+	handleMouse(dt);
 }
 
 const char g_windowClass[] = "glSandboxWindowClass";
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	POINT pt;
 	switch(msg)
 	{
 		case WM_CLOSE:
@@ -420,7 +453,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case WM_MOUSEMOVE:
 			// x coordinate is lower order short of lParam, y is higher order short
-			onMouseMove(LOWORD(lParam), HIWORD(lParam));
+			// onMouseMove(LOWORD(lParam), HIWORD(lParam));
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -454,8 +487,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.lpszClassName = g_windowClass;
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	
-	unsigned int winWidth = 640;
-	unsigned int winHeight = 480;
+	unsigned int winWidth = WINDOW_WIDTH;
+	unsigned int winHeight = WINDOW_HEIGHT;
 	
 	if(!RegisterClassEx(&wc))
 	{
@@ -630,6 +663,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	initGL(winWidth, winHeight);
 	printf("finished init, starting main loop\n");
 	
+	g_hwnd = hwnd;
 	g_current_millis = currentMillis();
 	// main loop
 	while(g_running)
@@ -651,7 +685,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		
 		long long current_millis = currentMillis();
-		printf("current_millis is %i\n", current_millis);
+		//printf("current_millis is %i\n", current_millis);
 		float dt = g_current_millis - current_millis;
 		g_current_millis = current_millis;
 		
@@ -661,7 +695,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		g_running &= !keys[frontKeyBuffer][VK_ESCAPE];
 		swapKeyBuffers();
 		SwapBuffers(hdc);
-		
 	}
 	printf("quitting\n");
 	
