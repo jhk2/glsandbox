@@ -3,3 +3,9 @@
 
 # Compiled Executables
 *.exe
+
+# Compiled Libraries
+*.lib
+
+# Text output files
+*/out.txt
