@@ -3,14 +3,29 @@
 WinGLBase::WinGLBase(HINSTANCE hInstance, unsigned int width, unsigned int height) : GLBase(width, height)
 {
 	hInstance_ = hInstance;
+	holdcursor_ = false;
 	addMessageHandler(WM_CLOSE, OnClose);
 	addMessageHandler(WM_DESTROY, OnDestroy);
+	addMessageHandler(WM_KEYDOWN, OnKeyDown);
+	addMessageHandler(WM_KEYUP, OnKeyUp);
+	addMessageHandler(WM_LBUTTONDOWN, OnMouseDownL);
+	addMessageHandler(WM_LBUTTONUP, OnMouseUpL);
+	addMessageHandler(WM_MBUTTONDOWN, OnMouseDownM);
+	addMessageHandler(WM_MBUTTONUP, OnMouseUpM);
+	addMessageHandler(WM_RBUTTONDOWN, OnMouseDownR);
+	addMessageHandler(WM_RBUTTONUP, OnMouseUpR);
 	initContext();
 }
 
 WinGLBase::~WinGLBase()
 {
 	
+}
+
+void WinGLBase::resize(unsigned int width, unsigned int height)
+{
+	glViewport(0,0,width,height);
+	// set perspective transformation with proper aspect ratio
 }
 
 void WinGLBase::swapBuffers()
@@ -20,8 +35,108 @@ void WinGLBase::swapBuffers()
 
 void WinGLBase::update()
 {
+	handleMessages();
+	// calculate timestep
+	long double newmillis = currentMillis();
+	dt_ = newmillis - current_millis_;
+	current_millis_ = newmillis;
 	
+	// calculate mouse motion
+	POINT pt;
+	GetCursorPos(&pt);
+	ScreenToClient(hwnd_, &pt);
+	mouse_dxdy_.x = pt.x - mouse_pos_.x;
+	mouse_dxdy_.y = pt.y - mouse_pos_.y;
+	mouse_pos_.x = pt.x;
+	mouse_pos_.y = pt.y;
+	
+	// if hold cursor is on, recenter
+	if(holdcursor_) {
+		pt.x = hold_pos_.x;
+		pt.y = hold_pos_.y;
+		ClientToScreen(hwnd_, &pt);
+		SetCursorPos(pt.x, pt.y);
+		mouse_pos_ = hold_pos_;
+	}
 }
+
+// IO stuff
+bool WinGLBase::isKeyDown(const unsigned int code)
+{
+	return keys_[frontKeyBuffer_][code];
+}
+
+bool WinGLBase::isKeyPress(const unsigned int code)
+{
+	return keys_[frontKeyBuffer_][code] && !keys_[1-frontKeyBuffer_][code];
+}
+
+bool WinGLBase::isKeyRelease(const unsigned int code)
+{
+	return !keys_[frontKeyBuffer_][code] && keys_[1-frontKeyBuffer_][code];
+}
+
+bool WinGLBase::isMouseDown(const MOUSE_BUTTON code)
+{
+	return mouse_buttons_[frontKeyBuffer_][code];
+}
+
+bool WinGLBase::isMousePress(const MOUSE_BUTTON code)
+{
+	return mouse_buttons_[frontKeyBuffer_][code] && !mouse_buttons_[1-frontKeyBuffer_][code];
+}
+
+bool WinGLBase::isMouseRelease(const MOUSE_BUTTON code)
+{
+	return !mouse_buttons_[frontKeyBuffer_][code] && mouse_buttons_[1-frontKeyBuffer_][code];
+}
+
+void WinGLBase::swapIODeviceBuffers()
+{
+	frontKeyBuffer_ = 1 - frontKeyBuffer_;
+	memcpy(&keys_[frontKeyBuffer_][0], &keys_[1-frontKeyBuffer_][0], sizeof(keys_[0]));
+	memcpy(&mouse_buttons_[frontKeyBuffer_][0], &mouse_buttons_[1-frontKeyBuffer_][0], sizeof(mouse_buttons_[0]));
+}
+
+int2 WinGLBase::getMousePixelPos()
+{
+	return mouse_pos_;
+}
+
+int2 WinGLBase::getMousePixel_dxdy()
+{
+	return mouse_dxdy_;
+}
+
+fl2 WinGLBase::getMouseNormPos()
+{
+	return fl2(((float) mouse_pos_.x) / width_, ((float) mouse_pos_.y) / height_);
+}
+
+fl2 WinGLBase::getMouseNorm_dxdy()
+{
+	return fl2(((float) mouse_dxdy_.x) / width_, ((float) mouse_dxdy_.y) / height_);
+}
+
+void WinGLBase::showCursor()
+{
+	ShowCursor(true);
+}
+
+void WinGLBase::hideCursor()
+{
+	ShowCursor(false);
+}
+
+void WinGLBase::holdCursor(const bool setting)
+{
+	holdcursor_ = setting;
+	if(holdcursor_) {
+		hold_pos_ = mouse_pos_;
+	}
+}
+
+// Windows-related stuff
 
 void WinGLBase::throwError(const std::string &message)
 {
@@ -310,6 +425,7 @@ bool WinGLBase::initContext()
 	
 	hwnd_ = hwnd;
 	hdc_ = hdc;
+	current_millis_ = currentMillis();
 	running_ = true;
 	return true;
 }
@@ -325,6 +441,8 @@ void WinGLBase::showWindow(int nCmdShow)
 	POINT p;
 	if(GetCursorPos(&p)) {
 		if (ScreenToClient(hwnd_, &p)) {
+			mouse_pos_.x = p.x;
+			mouse_pos_.y = p.y;
 			//g_mouse_x = p.x;
 			//g_mouse_y = p.y;
 		} else {
@@ -340,17 +458,22 @@ bool WinGLBase::initFunctions()
 	return false;
 }
 
-long long WinGLBase::currentMillis()
+long double WinGLBase::currentMillis()
 {
 	LARGE_INTEGER freq;
 	BOOL use_qpc = QueryPerformanceFrequency(&freq);
 	if (use_qpc) {
 		LARGE_INTEGER now;
 		QueryPerformanceCounter(&now);
-		return (1000LL * now.QuadPart) / freq.QuadPart;
+		return (1000.0L * now.QuadPart) / freq.QuadPart;
 	} else {
-		return GetTickCount();
+		return static_cast<long double>(GetTickCount());
 	}
+}
+
+float WinGLBase::getdtBetweenUpdates()
+{
+	return dt_;
 }
 
 void WinGLBase::setHWND(HWND hwnd)
@@ -370,4 +493,52 @@ long WinGLBase::OnDestroy(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lpara
 {
 	PostQuitMessage(0);
 	return 0;
+}
+
+long WinGLBase::OnKeyDown(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.keys_[wnd.frontKeyBuffer_][wparam] = true;
+	return true;
+}
+
+long WinGLBase::OnKeyUp(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.keys_[wnd.frontKeyBuffer_][wparam] = false;
+	return false;
+}
+
+long WinGLBase::OnMouseDownL(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.mouse_buttons_[wnd.frontKeyBuffer_][0] = true;
+	return true;
+}
+
+long WinGLBase::OnMouseUpL(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.mouse_buttons_[wnd.frontKeyBuffer_][0] = false;
+	return true;
+}
+
+long WinGLBase::OnMouseDownM(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.mouse_buttons_[wnd.frontKeyBuffer_][1] = true;
+	return true;
+}
+
+long WinGLBase::OnMouseUpM(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.mouse_buttons_[wnd.frontKeyBuffer_][1] = false;
+	return true;
+}
+
+long WinGLBase::OnMouseDownR(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.mouse_buttons_[wnd.frontKeyBuffer_][2] = true;
+	return true;
+}
+
+long WinGLBase::OnMouseUpR(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
+{
+	wnd.mouse_buttons_[wnd.frontKeyBuffer_][2] = false;
+	return true;
 }

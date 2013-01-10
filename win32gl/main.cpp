@@ -826,6 +826,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		
 		long long current_millis = currentMillis();
 		//printf("current_millis is %i\n", current_millis);
+		// wouldn't current_millis be bigger?
 		float dt = g_current_millis - current_millis;
 		g_current_millis = current_millis;
 		
