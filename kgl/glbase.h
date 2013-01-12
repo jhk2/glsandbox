@@ -5,6 +5,11 @@
 /*
 *	Class in charge of setting up GL context and handle window functions, like key and mouse input
 */
+
+enum MOUSE_BUTTON {
+	MOUSE_LEFT = 0, MOUSE_MIDDLE = 1, MOUSE_RIGHT = 2
+};
+
 class GLBase
 {
 	public:
@@ -17,10 +22,10 @@ class GLBase
 		unsigned int getWidth() { return width_; }
 		unsigned int getHeight() { return height_; }
 		bool isActive() { return running_; }
+		virtual void close() = 0;
 		
-		enum MOUSE_BUTTON {
-			MOUSE_LEFT = 0, MOUSE_MIDDLE = 1, MOUSE_RIGHT = 2
-		};
+		virtual void loadExtensions() = 0;
+		
 		// input related calls
 		virtual bool isKeyDown(const unsigned int code) = 0;
 		virtual bool isKeyPress(const unsigned int code) = 0;
@@ -55,4 +60,5 @@ class GLBase
 		unsigned int width_, height_;
 		bool running_;
 };
+
 #endif // GLBASE_H

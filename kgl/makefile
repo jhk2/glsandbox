@@ -6,14 +6,18 @@ LIBNAME = libkgl.lib
 CC = cl /EHsc /nologo /c
 # linker with flags
 LNK = lib /nologo
+# output obj files
+OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj
 
-all: kgl
+# always doing a full rebuild for now
+# since I don't know how to do autodependency for nmake
+all: clean kgl
 
-kgl: winglbase.obj
-	$(LNK) /out:$(LIBNAME) winglbase.obj
-	
-winglbase.obj: winglbase.cpp
-	$(CC) winglbase.cpp
+.cpp.obj:
+	$(CC) $<
+
+kgl: $(OBJ)
+	$(LNK) /out:$(LIBNAME) $(OBJ)
 	
 clean:
 	del *.lib *.obj

@@ -1,4 +1,5 @@
 #include "winglbase.h"
+#include "glextensionfuncs.h"
 
 WinGLBase::WinGLBase(HINSTANCE hInstance, unsigned int width, unsigned int height) : GLBase(width, height)
 {
@@ -15,6 +16,8 @@ WinGLBase::WinGLBase(HINSTANCE hInstance, unsigned int width, unsigned int heigh
 	addMessageHandler(WM_RBUTTONDOWN, OnMouseDownR);
 	addMessageHandler(WM_RBUTTONUP, OnMouseUpR);
 	initContext();
+	// load extensions
+	loadGLExtensions();
 }
 
 WinGLBase::~WinGLBase()
@@ -58,6 +61,11 @@ void WinGLBase::update()
 		SetCursorPos(pt.x, pt.y);
 		mouse_pos_ = hold_pos_;
 	}
+}
+
+void WinGLBase::close()
+{
+	SendMessage(hwnd_, WM_CLOSE, 0, 0);
 }
 
 // IO stuff
@@ -134,6 +142,11 @@ void WinGLBase::holdCursor(const bool setting)
 	if(holdcursor_) {
 		hold_pos_ = mouse_pos_;
 	}
+}
+
+void WinGLBase::loadExtensions()
+{
+
 }
 
 // Windows-related stuff
