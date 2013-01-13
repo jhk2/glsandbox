@@ -7,7 +7,7 @@ CC = cl /EHsc /nologo /c
 # linker with flags
 LNK = lib /nologo
 # output obj files
-OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj
+OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj shader.obj
 
 # always doing a full rebuild for now
 # since I don't know how to do autodependency for nmake

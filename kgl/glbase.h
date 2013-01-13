@@ -13,7 +13,8 @@ enum MOUSE_BUTTON {
 class GLBase
 {
 	public:
-		GLBase(unsigned int width, unsigned int height) : width_(width), height_(height) {};
+		GLBase(unsigned int width, unsigned int height) 
+			: width_(width), height_(height) {};
 		virtual ~GLBase() {};
 		virtual void resize(unsigned int width, unsigned int height) = 0;
 		virtual void update() = 0;

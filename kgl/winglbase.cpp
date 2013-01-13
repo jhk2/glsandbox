@@ -5,6 +5,14 @@ WinGLBase::WinGLBase(HINSTANCE hInstance, unsigned int width, unsigned int heigh
 {
 	hInstance_ = hInstance;
 	holdcursor_ = false;
+	frontKeyBuffer_ = 0;
+	
+	// clear key and mouse buffers
+	memset(keys_[0], 0, sizeof(bool)*256);
+	memset(keys_[1], 0, sizeof(bool)*256);
+	memset(mouse_buttons_[0], 0, sizeof(bool)*3);
+	memset(mouse_buttons_[1], 0, sizeof(bool)*3);
+	
 	addMessageHandler(WM_CLOSE, OnClose);
 	addMessageHandler(WM_DESTROY, OnDestroy);
 	addMessageHandler(WM_KEYDOWN, OnKeyDown);
@@ -28,7 +36,6 @@ WinGLBase::~WinGLBase()
 void WinGLBase::resize(unsigned int width, unsigned int height)
 {
 	glViewport(0,0,width,height);
-	// set perspective transformation with proper aspect ratio
 }
 
 void WinGLBase::swapBuffers()
@@ -198,7 +205,7 @@ bool WinGLBase::getMessageHandler(long message, WinGLBase::MessageIterator &it)
 
 LRESULT CALLBACK WinGLBase::RouteMessage(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
-	printf("routemessage called\n");
+	//printf("routemessage called\n");
 	WinGLBase *wnd = 0;
 	if(message == WM_NCCREATE) {
 		// when the window is created, we want to save its unique ID to GWL_USERDATA so we can retreive this particular window

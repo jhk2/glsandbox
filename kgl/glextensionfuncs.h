@@ -9,9 +9,6 @@
 #include <gl/gl.h>
 #include <gl/glext.h>
 
-// matrix operations
-extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
-
 // vertex buffers
 extern PFNGLBINDBUFFERPROC glBindBuffer;
 extern PFNGLGENBUFFERSPROC glGenBuffers;
@@ -32,6 +29,7 @@ extern PFNGLCREATESHADERPROC glCreateShader;
 extern PFNGLSHADERSOURCEPROC glShaderSource;
 extern PFNGLCOMPILESHADERPROC glCompileShader;
 extern PFNGLCREATEPROGRAMPROC glCreateProgram;
+extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
 extern PFNGLLINKPROGRAMPROC glLinkProgram;
 extern PFNGLATTACHSHADERPROC glAttachShader;
 extern PFNGLUSEPROGRAMPROC glUseProgram;
@@ -40,6 +38,8 @@ extern PFNGLDELETESHADERPROC glDeleteShader;
 // uniform variables
 extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLUNIFORM1UIPROC glUniform1ui;
+// uniform matrices
+extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
 // image units
 /*

@@ -48,16 +48,16 @@ class WinGLBase : public GLBase
 		void hideCursor();
 		void holdCursor(const bool setting);
 		
+		// adding additional message handlers
+		typedef long (* MessageHandler)(WinGLBase &, HWND, WPARAM, LPARAM);
+		MessageHandler WinGLBase::addMessageHandler(long message, MessageHandler handler);
+		
 	protected:
 		void handleMessages();
 		void swapBuffers();
 		void swapIODeviceBuffers();
 		bool initContext();
 		bool initFunctions();
-	
-		typedef long (* MessageHandler)(WinGLBase &, HWND, WPARAM, LPARAM);
-		// adding additional message handlers
-		MessageHandler WinGLBase::addMessageHandler(long message, MessageHandler handler);
 	
 	private:
 		HINSTANCE hInstance_;
