@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include "debug.h"
 
 Shader::Shader(const char* filename, const unsigned int stages)
 {
@@ -17,6 +18,11 @@ Shader::~Shader()
 void Shader::use()
 {
 	glUseProgram(program_id_);
+}
+
+GLint Shader::getUniformLocation(const GLchar *name)
+{
+	return glGetUniformLocation(program_id_, name);
 }
 
 void Shader::loadShaderProgram(const char *sourceFile, const unsigned int stages)
@@ -34,6 +40,7 @@ void Shader::loadShaderProgram(const char *sourceFile, const unsigned int stages
 		loadShader(sourceFile, GL_TESS_EVALUATION_SHADER);
 	}
 	// if(stages & COMPUTE_SHADER) loadshader(sourceFile, GL_COMPUTE_SHADER);
+	glLinkProgram(program_id_);
 }
 
 void Shader::loadShader(const char *sourceFile, const GLenum type)

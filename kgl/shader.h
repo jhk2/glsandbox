@@ -5,6 +5,7 @@
 #include <windows.h>
 #endif
 #include <gl/gl.h>
+#include <gl/glext.h>
 
 /*
 *	Represents a whole shader program (with any number of shader stages implemented)
@@ -40,6 +41,9 @@ class Shader
 	virtual ~Shader();
 	
 	void use();
+	GLint getUniformLocation(const GLchar* name);
+	
+	GLuint getProgramID() { return program_id_; }
 	
 	private:
 		// loads the whole shader program (by loading each of the individual shaders)

@@ -2,12 +2,18 @@
 
 #ifdef _VERTEX_
 
-in vec4 in_Pos;
+uniform mat4 mvMatrix;
+uniform mat4 pjMatrix;
+
+layout(location = 0) in vec3 in_Pos;
 out vec4 out_Pos;
 
 void main()
 {
-	gl_Position = vec4(0, 0, 0, 1);
+	out_Pos = pjMatrix * mvMatrix * vec4(in_Pos, 1);
+	gl_Position = out_Pos;
+	//gl_Position = vec4(in_Pos, 1);
+	//gl_Position = vec4(0, 0, 0, 1);
 }
 #endif
 
@@ -24,6 +30,9 @@ float gaussian(float x) {
 }
 
 void main() {
-	out_Color = vec4(1.0, gaussian(length(out_Pos)*4), 0, 1.0);
+	//out_Color = vec4(1.0, gaussian(length(out_Pos)*4), 0, 1.0);
+	out_Color = vec4(1, out_Pos.x, out_Pos.y, 1);
+	//out_Color = vec4(0, 1, 0, 1);
+	//out_Color = vec4(0);
 }
 #endif

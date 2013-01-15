@@ -41,6 +41,9 @@ PFNGLDELETESHADERPROC glDeleteShader;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM1UIPROC glUniform1ui;
 
+// frame buffers and the like
+PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+
 void loadGLExtensions()
 {
 	// matrix operations
@@ -52,12 +55,15 @@ void loadGLExtensions()
 	glBufferData = (PFNGLBUFFERDATAPROC) GETPROCADDR("glBufferData");
 	glDeleteBuffers = (PFNGLDELETEBUFFERSPROC) GETPROCADDR("glDeleteBuffers");
 	
-	// vertex array objects
+	// vertex attributes
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) GETPROCADDR("glEnableVertexAttribArray");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) GETPROCADDR("glVertexAttribPointer");
+	// vertex array objects
+	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC) GETPROCADDR("glGenVertexArrays");
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC) GETPROCADDR("glBindVertexArray");
 	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC) GETPROCADDR("glDeleteVertexArrays");
 	
-	// shder compilation/use
+	// shader compilation/use
 	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) GETPROCADDR("glGetShaderInfoLog");
 	glCreateShader = (PFNGLCREATESHADERPROC) GETPROCADDR("glCreateShader");
 	glShaderSource = (PFNGLSHADERSOURCEPROC) GETPROCADDR("glShaderSource");
@@ -72,4 +78,7 @@ void loadGLExtensions()
 	// uniform variables
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) GETPROCADDR("glGetUniformLocation");
 	glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glGetUniform1ui");
+	
+	// frame buffers and the like
+	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");
 }

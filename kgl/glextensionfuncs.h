@@ -41,6 +41,9 @@ extern PFNGLUNIFORM1UIPROC glUniform1ui;
 // uniform matrices
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
+// frame buffers and the like
+extern PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+
 // image units
 /*
 typedef void (APIENTRYP PFNGLBINDIMAGETEXTUREPROC) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
