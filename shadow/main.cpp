@@ -39,9 +39,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	
 	printf("init quad data\n"); fflush(stdout);
 	// let's make a simple quad for a mesh
-	std::vector<std::pair<unsigned int, AttributeInfo*>> attribInfo;
-	printf("attribinfo vector created\n"); fflush(stdout);
-	attribInfo.push_back(std::pair<unsigned int, AttributeInfo*>(0, new AttributeInfoSpec<GLfloat>(GL_FLOAT, 3)));
+	//~ std::vector<std::pair<unsigned int, AttributeInfo*>> attribInfo;
+	//~ printf("attribinfo vector created\n"); fflush(stdout);
+	//~ attribInfo.push_back(std::pair<unsigned int, AttributeInfo*>(0, new AttributeInfoSpec<GLfloat>(GL_FLOAT, 3)));
 	printf("making vert vector\n"); fflush(stdout);
 	std::vector<fl3> verts;
 	verts.push_back(fl3(0, 0, 0));
@@ -49,12 +49,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	verts.push_back(fl3(1, 1, 0));
 	verts.push_back(fl3(1, 0, 0));
 	printf("verts vector created\n"); fflush(stdout);
-	VertexBufferSpec<fl3> vbuf (&verts);
+	//~ VertexBufferSpec<fl3> vbuf (&verts);
 	std::vector<unsigned int> inds;
 	inds.push_back(0); inds.push_back(1); inds.push_back(2); inds.push_back(3);
 	printf("make mesh from quad data\n"); fflush(stdout);
-	Mesh<fl3> quad (attribInfo, vbuf, inds);
-	printf("mesh created\n"); fflush(stdout);
+	//~ Mesh<fl3> quad (attribInfo, vbuf, inds);
+	//~ printf("mesh created\n"); fflush(stdout);
+	
+	Mesh<fl3, GLuint> quad;
+	quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addVerts(verts).addInds(inds).finalize();
+	//~ quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3));
+	//~ quad.addVerts(verts);
+	//~ quad.addInds(inds);
+	//~ quad.finalize();
 	
 	while(window->isActive()) {
 		// always call at the beginning of loop iteration (should we combine with isActive and finishFrame?)
