@@ -32,6 +32,11 @@ struct fl3 {
 	{
 		return fl3(x+other.x, y+other.y, z+other.z);
 	}
+	fl3& fl3::operator+=(const fl3 &other)
+	{
+		x+=other.x; y+=other.y; z+=other.z;
+		return *this;
+	}
 };
 
 // 2d vector
@@ -49,6 +54,15 @@ struct fl2 {
 	fl2() : x(0), y(0) {};
 	fl2(const fl2 &other) : x(other.x), y(other.y) {};
 	fl2(const float nx, const float ny) : x(nx), y(ny) {};
+	fl2 fl2::operator+(const fl2 &other)
+	{
+		return fl2(x+other.x, y+other.y);
+	}
+	fl2& fl2::operator+=(const fl2 &other)
+	{
+		x+=other.x; y+=other.y;
+		return *this;
+	}
 };
 
 // integer vector
