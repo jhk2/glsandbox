@@ -5,6 +5,7 @@
 #include "../kgl/mesh.h"
 #include <stdio.h>
 #include "../kgl/debug.h"
+#include "../kgl/texture.h"
 
 MatrixStack mats;
 
@@ -63,6 +64,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//~ quad.addInds(inds);
 	//~ quad.finalize();
 	
+	Texture tex ("Jellyfish.jpg");
+	
 	while(window->isActive()) {
 		// always call at the beginning of loop iteration (should we combine with isActive and finishFrame?)
 		window->update();
@@ -91,7 +94,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		*/
 		// start GL code
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		tex.bind();
 		shader.use();
 		mats.matrixToUniform(MatrixStack::MODELVIEW);
 		mats.matrixToUniform(MatrixStack::PROJECTION);

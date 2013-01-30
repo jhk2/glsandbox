@@ -9,3 +9,12 @@
 
 # Text output files
 */out.txt
+
+# external library stuff
+external/
+include/
+
+# image files
+*.png
+*.jpeg
+*.jpg
