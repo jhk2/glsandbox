@@ -15,6 +15,8 @@
 class Texture
 {
 	public:
+		Texture();
+		Texture(const Texture &other);
 		Texture(const char *filename);
 		virtual ~Texture();
 		void bind();

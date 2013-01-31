@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <string>
 
 /*
 *	learned about type erasure here
@@ -30,7 +31,7 @@ template<typename V> class VertexBufferSpec
 		const GLvoid* data() { return (GLvoid*) vertices_.data(); }
 		const unsigned int size() { return vertices_.size(); }
 		void addVerts(std::vector<V> &newverts) { vertices_.insert(vertices_.end(), newverts.begin(), newverts.end()); }
-		void addVert(V &newvert) { vertices_.push_back(V); }
+		void addVert(V &newvert) { vertices_.push_back(newvert); }
 	private:
 		std::vector<V> vertices_;
 };
@@ -68,7 +69,7 @@ class Mesh
 	public:
 		// attribInfo is a vector containing pairs of (attribute number, attribute info)
 		// it should have the same order as the attributes are defined in the custom vertex struct V
-		Mesh() : verts_(), attribs_(), inds_() {}
+		Mesh(GLenum drawtype) : drawType_(drawtype), verts_(), attribs_(), inds_() {}
 
 		virtual ~Mesh() 
 		{
@@ -118,7 +119,7 @@ class Mesh
 			printf("done with vao\n"); fflush(stdout);
 			
 			// TODO: make this customizable
-			drawType_ = GL_QUADS;
+			// drawType_ = GL_QUADS; it should be now in constructor
 			idxCount_ = inds_.size();
 			printf("idxcount is %i\n", idxCount_); fflush(stdout);
 			
@@ -131,7 +132,7 @@ class Mesh
 			unsigned int offset = 0;
 			printf("iterating through attribinfo size %i\n", attribs_.size()); fflush(stdout);
 			for(unsigned int i = 0; i < attribs_.size(); i++) {
-				printf("current index = $i\n", i); fflush(stdout);
+				printf("current index = %i\n", i); fflush(stdout);
 				std::pair<unsigned int, AttributeInfoConcept*> &cur = attribs_[i];
 				printf("enabling vertex attribute #%i\n", cur.first); fflush(stdout);
 				glEnableVertexAttribArray(cur.first);

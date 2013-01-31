@@ -1,3 +1,6 @@
+# Compilation directories
+build/
+
 # Compiled Object Files
 *.obj
 

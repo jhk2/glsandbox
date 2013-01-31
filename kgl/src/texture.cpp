@@ -4,8 +4,13 @@
 #include <stdio.h>
 #include "jpeglib.h"
 
+Texture::Texture() : id_(0), dims_() {}
+
+Texture::Texture(const Texture &other) : id_(other.id_), dims_(other.dims_) {}
+
 Texture::Texture(const char *filename) : id_(0), dims_()
 {
+	printf("loading texture image from %s\n", filename); fflush(stdout);
 	init(filename);
 }
 

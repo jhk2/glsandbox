@@ -1,11 +1,12 @@
-#include "../kgl/winglbase.h"
-#include "../kgl/glextensionfuncs.h"
-#include "../kgl/matrixstack.h"
-#include "../kgl/shader.h"
-#include "../kgl/mesh.h"
+#include "winglbase.h"
+#include "glextensionfuncs.h"
+#include "matrixstack.h"
+#include "shader.h"
+#include "mesh.h"
 #include <stdio.h>
-#include "../kgl/debug.h"
-#include "../kgl/texture.h"
+#include "debug.h"
+#include "texture.h"
+#include "obj.h"
 
 MatrixStack mats;
 
@@ -57,14 +58,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//~ Mesh<fl3> quad (attribInfo, vbuf, inds);
 	//~ printf("mesh created\n"); fflush(stdout);
 	
-	Mesh<fl3, GLuint> quad;
+	Mesh<fl3, GLuint> quad (GL_QUADS);
 	quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addVerts(verts).addInds(inds).finalize();
 	//~ quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3));
 	//~ quad.addVerts(verts);
 	//~ quad.addInds(inds);
 	//~ quad.finalize();
 	
-	Texture tex ("Jellyfish.jpg");
+	Obj testobj ("../assets/Serverbot1.obj");
+	
+	Texture tex ("../assets/Jellyfish.jpg");
 	
 	while(window->isActive()) {
 		// always call at the beginning of loop iteration (should we combine with isActive and finishFrame?)

@@ -71,7 +71,7 @@ struct int2 {
 		struct {
 			int x, y;
 		};
-		float xy[2];
+		int xy[2];
 	};
 	int2() : x(0), y(0) {};
 	int2(const int2 &other) : x(other.x), y(other.y) {};
@@ -85,5 +85,29 @@ struct int2 {
 		return int2(x-other.x, y-other.y);
 	};
 };
+
+struct int3 {
+	union {
+		struct {
+			int x, y, z;
+		};
+		int xyz[3];
+	};
+	int3() : x(0), y(0), z(0) {};
+	int3(const int3 &other) : x(other.x), y(other.y), z(other.z) {};
+	int3(const float nx, const float ny, const float nz) : x(nx), y(ny), z(nz) {};
+	int3 int3::operator+(const int3 &other)
+	{
+		return int3(x+other.x, y+other.y, z+other.z);
+	}
+	
+	friend bool operator< (const int3 &first, const int3 &second);
+};
+
+// compare operator for use as a map key weak ordering
+static bool operator< (const int3 &first, const int3 &second)
+{
+	return (first.x < second.x) && (first.y < second.y) && (first.z < second.z);
+}
 
 #endif // UTILS_H

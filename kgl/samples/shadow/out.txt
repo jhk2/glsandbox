@@ -1,0 +1,47 @@
+got nccreate, set hwnd to 40668
+disposed of the first destory message
+got nccreate, set hwnd to 50668
+make shader
+no error at function getuniformlocation
+init matrix uniform locs at 0, 1
+init quad data
+making vert vector
+verts vector created
+make mesh from quad data
+gen vertex arrays 5EEE5190
+bind vertex array 5EEE50B0
+done with vao
+idxcount is 4
+vbo generated
+glbufferdata finished
+iterating through attribinfo size 1
+current index = 0
+enabling vertex attribute #0
+vertex attrib pointer with 3 components and offset of 0
+finished setting up vertex attribs
+generated and filled ibo
+trying to load obj file ../assets/Serverbot1.obj
+trying to load mtl file ../assets/Serverbot1.mtl
+loading texture image from kobun_body00_bm.png
+loading texture image from kobun_face00_bm.360.png
+creating ptn mesh
+hit a non f character # after 96 faces
+creating ptn mesh
+hit a non f character # after 128 faces
+creating ptn mesh
+hit a non f character # after 200 faces
+creating ptn mesh
+hit a non f character # after 224 faces
+creating ptn mesh
+hit a non f character # after 144 faces
+creating ptn mesh
+hit a non f character # after 536 faces
+creating ptn mesh
+hit a non f character # after 38 faces
+creating ptn mesh
+hit a non f character # after 336 faces
+creating ptn mesh
+hit a non f character # after 266 faces
+creating ptn mesh
+hit a non f character # after 96 faces
+loading texture image from ../assets/Jellyfish.jpg

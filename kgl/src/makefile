@@ -1,5 +1,6 @@
 # source files for library
 LIBSRC = test.cpp
+BUILDDIR = ../build
 # library name
 SINGLELIB = libkglsingle.lib
 LIBNAME = libkgl.lib
@@ -8,7 +9,7 @@ CC = cl /EHsc /nologo /c
 # linker with flags
 LNK = lib /nologo
 # output obj files
-OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj shader.obj camera.obj texture.obj
+OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj shader.obj camera.obj texture.obj obj.obj
 # include directories
 INC = include
 # additional libraries
@@ -22,10 +23,11 @@ all: clean kgl combine
 	$(CC) /I $(INC) $<
 
 kgl: $(OBJ)
-	$(LNK) /out:$(SINGLELIB) $(OBJ)
+	$(LNK) /out:$(BUILDDIR)/$(SINGLELIB) $(OBJ)
+	del *.obj
 	
-combine: $(SINGLELIB)
-	$(LNK) /LTCG /out:$(LIBNAME) $(SINGLELIB) $(LIBS) 
-	
+combine: kgl
+	$(LNK) /LTCG /out:$(BUILDDIR)/$(LIBNAME) $(BUILDDIR)/$(SINGLELIB) $(LIBS) 
+	copy ..\build\$(LIBNAME) ..\samples\$(LIBNAME)
 clean:
-	del *.lib *.obj
+	del ..\build\*.lib
