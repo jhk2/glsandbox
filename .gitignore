@@ -1,9 +1,6 @@
 # Compilation directories
 build/
 
-# Compiled Object Files
-*.obj
-
 # Compiled Executables
 *.exe
 
@@ -17,7 +14,14 @@ build/
 external/
 include/
 
+# assets
+assets/
+
 # image files
 *.png
 *.jpeg
 *.jpg
+
+# model files
+*.obj
+*.mtl
