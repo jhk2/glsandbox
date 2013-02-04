@@ -20,6 +20,7 @@ class Texture
 		Texture(const char *filename);
 		virtual ~Texture();
 		void bind();
+		GLuint getID();
 	private:
 		bool init(const char *filename);
 		bool loadPng(const char *filename);

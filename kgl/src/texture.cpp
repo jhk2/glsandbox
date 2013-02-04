@@ -10,8 +10,10 @@ Texture::Texture(const Texture &other) : id_(other.id_), dims_(other.dims_) {}
 
 Texture::Texture(const char *filename) : id_(0), dims_()
 {
-	printf("loading texture image from %s\n", filename); fflush(stdout);
-	init(filename);
+	//~ printf("loading texture image from %s\n", filename); fflush(stdout);
+	if(init(filename)) {
+		printf("successfully loaded texture %s\n", filename); fflush(stdout);
+	}
 }
 
 Texture::~Texture()
@@ -23,6 +25,11 @@ Texture::~Texture()
 void Texture::bind()
 {
 	glBindTexture(GL_TEXTURE_2D, id_);
+}
+
+GLuint Texture::getID()
+{
+	return id_;
 }
 
 bool Texture::init(const char *filename)
@@ -41,29 +48,35 @@ bool Texture::init(const char *filename)
 // load png code from http://afsharious.wordpress.com/2011/06/30/loading-transparent-pngs-in-opengl-for-dummies/
 bool Texture::loadPng(const char *filename)
 {
+	//~ printf("loading png %s\n", filename); fflush(stdout);
 	png_byte header[8];
 	FILE *file = fopen(filename, "rb"); // open as binary
 	if (!file) {
+		//~ printf("couldn't get file pointer\n"); fflush(stdout);
 		return false;
 	}
 	fread(header, 1, 8, file);
 	bool is_png = !png_sig_cmp(header, 0, 8);
 	if (!is_png) {
+		//~ printf("file isn't png\n"); fflush(stdout);
 		fclose(file);
 		return false;
 	}
 	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_ptr) {
+		//~ printf("couldn't get png pointer\n"); fflush(stdout);
 		fclose(file);
 		return false;
 	}
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
+		//~ printf("couldn't get info pointer\n"); fflush(stdout);
 		png_destroy_read_struct(&png_ptr, (png_infopp) NULL, (png_infopp) NULL);
 		fclose(file);
 		return false;
 	}
 	if (setjmp(png_jmpbuf(png_ptr))) {
+		//~ printf("couldn't set jump function\n"); fflush(stdout);
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
 		fclose(file);
 		return false;
@@ -87,10 +100,12 @@ bool Texture::loadPng(const char *filename)
 	
 	//sendGL(data);
 	glGenTextures(1, &id_);
+	//~ printf("generated texture id %u\n", id_); fflush(stdout);
 	glBindTexture(GL_TEXTURE_2D, id_);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims_.x, dims_.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL);
 	delete[] data;
@@ -134,6 +149,7 @@ bool Texture::loadJpg(const char *filename)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dims_.x, dims_.y, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
@@ -150,4 +166,5 @@ void Texture::sendGL(const GLvoid *data)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims_.x, dims_.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

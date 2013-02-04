@@ -40,9 +40,14 @@ PFNGLDELETESHADERPROC glDeleteShader;
 // uniform variables
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM1UIPROC glUniform1ui;
+PFNGLUNIFORM1FPROC glUniform1f;
+PFNGLUNIFORM3FVPROC glUniform3fv;
 
 // frame buffers and the like
 PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+
+// textures
+PFNGLACTIVETEXTUREPROC glActiveTexture;
 
 void loadGLExtensions()
 {
@@ -77,8 +82,13 @@ void loadGLExtensions()
 	glDeleteShader = (PFNGLDELETESHADERPROC) GETPROCADDR("glDeleteShader");
 	// uniform variables
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) GETPROCADDR("glGetUniformLocation");
-	glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glGetUniform1ui");
+	glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glUniform1ui");
+	glUniform1f = (PFNGLUNIFORM1FPROC) GETPROCADDR("glUniform1f");
+	glUniform3fv = (PFNGLUNIFORM3FVPROC) GETPROCADDR("glUniform3fv");
 	
 	// frame buffers and the like
 	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");
+	
+	// textures
+	glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
 }

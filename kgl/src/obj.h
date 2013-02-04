@@ -9,6 +9,8 @@
 #include <map>
 #include "texture.h"
 #include "mesh.h"
+class Shader;
+class MatrixStack;
 /*
 *	Class for loading obj mesh from a file
 *	Used http://www.artifactgames.de/Code/Loader.zip as a starting point
@@ -24,9 +26,12 @@ class Obj
 		Obj(const char *filename);
 		virtual ~Obj();
 	
-		void draw();
+		void draw(Shader &shader, MatrixStack &matstack);
+		void getBounds(fl3 &min, fl3 &max);
 		
 	private:
+		// bounding box
+		fl3 min_, max_;
 		struct PTNvert {
 			fl3 pos_;
 			fl3 tex_;
@@ -39,6 +44,33 @@ class Obj
 		struct PNvert {
 			fl3 pos_;
 			fl3 norm_;
+		};
+		
+		// struct for materials
+		struct ObjMaterial {
+			std::string name;
+			float Ns; // specular coefficient
+			float Ni; // index of refraction
+			union {
+				float d, Tr; // transparency (can have both notations)
+			};
+			fl3 Tf; // transmission filter (allows only certain colors through)
+			
+			unsigned int illum; // illumination model
+			// 0 means constant illumination (color = Kd)
+			// 1 means lambertian model (diffuse and ambient only)
+			// 2 means lambert + blinn-phong (diffuse, specular, and ambient)
+			// there's more at http://en.wikipedia.org/wiki/Wavefront_.obj_file
+			// but these are the basics
+			
+			fl3 Ka; // ambient color
+			fl3 Kd; // diffuse color
+			fl3 Ks; // specular color
+			fl3 Ke; // emissive color
+			
+			Texture *map_Ka; // ambient texture
+			Texture *map_Kd; // diffuse texture
+			Texture *map_Ks; // specular texture
 		};
 		
 		// internal abstract class for handling different vertex formats
@@ -90,37 +122,10 @@ class Obj
 		// temporary variables for parsing materials
 		std::map<std::string, bool> mtlfiles_;
 		// textures can be shared for multiple materials, so a map to keep track of them
-		std::map<std::string, Texture> textures_;
+		std::map<std::string, Texture *> textures_;
 		// temporary map of which v/t/n combos have been assigned to which index
 		std::map<int3, GLuint> combos_;
 		GLuint currentcombo_;
-	
-		// struct for materials
-		struct ObjMaterial {
-			std::string name;
-			float Ns; // specular coefficient
-			float Ni; // index of refraction
-			union {
-				float d, Tr; // transparency (can have both notations)
-			};
-			fl3 Tf; // transmission filter (allows only certain colors through)
-			
-			unsigned int illum; // illumination model
-			// 0 means constant illumination (color = Kd)
-			// 1 means lambertian model (diffuse and ambient only)
-			// 2 means lambert + blinn-phong (diffuse, specular, and ambient)
-			// there's more at http://en.wikipedia.org/wiki/Wavefront_.obj_file
-			// but these are the basics
-			
-			fl3 Ka; // ambient color
-			fl3 Kd; // diffuse color
-			fl3 Ks; // specular color
-			fl3 Ke; // emissive color
-			
-			Texture map_Ka; // ambient texture
-			Texture map_Kd; // diffuse texture
-			Texture map_Ks; // specular texture
-		};
 		
 		// map of materials by addressable name
 		std::map<std::string, ObjMaterial *> materials_;

@@ -112,41 +112,41 @@ class Mesh
 		// use this method to push all of the data to GL
 		void finalize()
 		{
-			printf("gen vertex arrays %p\n", glGenVertexArrays); fflush(stdout);
+			//~ printf("gen vertex arrays %p\n", glGenVertexArrays); fflush(stdout);
 			glGenVertexArrays(1, &vao_);
-			printf("bind vertex array %p\n", glBindVertexArray); fflush(stdout);
+			//~ printf("bind vertex array %p\n", glBindVertexArray); fflush(stdout);
 			glBindVertexArray(vao_);
-			printf("done with vao\n"); fflush(stdout);
+			//~ printf("done with vao\n"); fflush(stdout);
 			
 			// TODO: make this customizable
 			// drawType_ = GL_QUADS; it should be now in constructor
 			idxCount_ = inds_.size();
-			printf("idxcount is %i\n", idxCount_); fflush(stdout);
+			//~ printf("idxcount is %i\n", idxCount_); fflush(stdout);
 			
 			glGenBuffers(1, &vbo_);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-			printf("vbo generated\n"); fflush(stdout);
+			//~ printf("vbo generated\n"); fflush(stdout);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(V)*verts_.size(), verts_.data(), GL_STATIC_DRAW);
-			printf("glbufferdata finished\n"); fflush(stdout);
+			//~ printf("glbufferdata finished\n"); fflush(stdout);
 			
 			unsigned int offset = 0;
-			printf("iterating through attribinfo size %i\n", attribs_.size()); fflush(stdout);
+			//~ printf("iterating through attribinfo size %i\n", attribs_.size()); fflush(stdout);
 			for(unsigned int i = 0; i < attribs_.size(); i++) {
-				printf("current index = %i\n", i); fflush(stdout);
+				//~ printf("current index = %i\n", i); fflush(stdout);
 				std::pair<unsigned int, AttributeInfoConcept*> &cur = attribs_[i];
-				printf("enabling vertex attribute #%i\n", cur.first); fflush(stdout);
+				//~ printf("enabling vertex attribute #%i\n", cur.first); fflush(stdout);
 				glEnableVertexAttribArray(cur.first);
 				// TODO: enable normalization?
 				glVertexAttribPointer(cur.first, cur.second->numComponents, cur.second->name(), GL_FALSE, sizeof(V), (char *)NULL + offset);
-				printf("vertex attrib pointer with %i components and offset of %i\n", cur.second->numComponents, offset); fflush(stdout);
+				//~ printf("vertex attrib pointer with %i components and offset of %i\n", cur.second->numComponents, offset); fflush(stdout);
 				offset += cur.second->getSize();
 			}
-			printf("finished setting up vertex attribs\n"); fflush(stdout);
+			//~ printf("finished setting up vertex attribs\n"); fflush(stdout);
 			glGenBuffers(1, &ibo_);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
 			// TODO: either force unsigned int or make index data type customizable
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(I)*idxCount_, inds_.data(), GL_STATIC_DRAW);
-			printf("generated and filled ibo\n"); fflush(stdout);
+			//~ printf("generated and filled ibo\n"); fflush(stdout);
 			
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);

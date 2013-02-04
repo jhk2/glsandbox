@@ -8,7 +8,7 @@ build/
 *.lib
 
 # Text output files
-*/out.txt
+out.txt
 
 # external library stuff
 external/

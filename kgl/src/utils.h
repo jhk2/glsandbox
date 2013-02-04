@@ -37,6 +37,11 @@ struct fl3 {
 		x+=other.x; y+=other.y; z+=other.z;
 		return *this;
 	}
+	fl3& fl3::operator*=(const float &scalar)
+	{
+		x*=scalar; y*=scalar; z*=scalar;
+		return *this;
+	}
 };
 
 // 2d vector
@@ -107,7 +112,7 @@ struct int3 {
 // compare operator for use as a map key weak ordering
 static bool operator< (const int3 &first, const int3 &second)
 {
-	return (first.x < second.x) && (first.y < second.y) && (first.z < second.z);
+	return (&first < &second);
 }
 
 #endif // UTILS_H

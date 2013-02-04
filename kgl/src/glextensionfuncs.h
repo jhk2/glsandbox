@@ -38,11 +38,16 @@ extern PFNGLDELETESHADERPROC glDeleteShader;
 // uniform variables
 extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLUNIFORM1UIPROC glUniform1ui;
+extern PFNGLUNIFORM1FPROC glUniform1f;
+extern PFNGLUNIFORM3FVPROC glUniform3fv;
 // uniform matrices
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
 // frame buffers and the like
 extern PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+
+// textures
+extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 
 // image units
 /*

@@ -33,6 +33,7 @@ void Camera::toMatrixAll(MatrixStack &mstack)
 
 void Camera::toMatrixPj(MatrixStack &mstack)
 {
+	/*
 	double xmin, xmax, ymin, ymax;
 	ymax = zNear_ * tan(fovy_ * M_PI / 360.0);
 	ymin = -ymax;
@@ -40,21 +41,24 @@ void Camera::toMatrixPj(MatrixStack &mstack)
 	xmax = ymax * aspect_;
 	mstack.loadIdentity(MatrixStack::PROJECTION);
 	mstack.frustum(xmin, xmax, ymin, ymax, zNear_, zFar_);
+	*/
+	mstack.perspective(fovy_, aspect_, zNear_, zFar_);
 }
 
 void Camera::toMatrixMv(MatrixStack &mstack)
 {
 	mstack.loadIdentity(MatrixStack::MODELVIEW);
-	mstack.rotate(rot_.x, 1, 0, 0);
-	mstack.rotate(rot_.y, 0, 1, 0);
+	mstack.rotate(-rot_.x, 1, 0, 0);
+	mstack.rotate(-rot_.y, 0, 1, 0);
 	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
 }
 
 Camera& Camera::move(fl3 &tomove)
 {
-	pos_.x += -tomove.z * sin(DEGTORAD(rot_.y)) + tomove.x * cos(DEGTORAD(rot_.y));
-	pos_.z += -tomove.z * cos(DEGTORAD(rot_.y)) + tomove.x * sin(DEGTORAD(rot_.y));
-	pos_.y += tomove.y;
+	float r = tomove.z * cos(DEGTORAD(rot_.x));
+	pos_.x += r * sin(DEGTORAD(rot_.y)) + tomove.x * cos(DEGTORAD(rot_.y));
+	pos_.z += r * cos(DEGTORAD(rot_.y)) - tomove.x * sin(DEGTORAD(rot_.y));
+	pos_.y += tomove.y - tomove.z * sin(DEGTORAD(rot_.x));
 	return *this;
 }
 
