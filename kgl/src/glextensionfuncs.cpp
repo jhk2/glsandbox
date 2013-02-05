@@ -45,9 +45,21 @@ PFNGLUNIFORM3FVPROC glUniform3fv;
 
 // frame buffers and the like
 PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
+PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+PFNGLFRAMEBUFFERTEXTURELAYERPROC glFramebufferTextureLayer;
+PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
 
 // textures
 PFNGLACTIVETEXTUREPROC glActiveTexture;
+PFNGLTEXIMAGE3DPROC glTexImage3D;
 
 void loadGLExtensions()
 {
@@ -88,7 +100,19 @@ void loadGLExtensions()
 	
 	// frame buffers and the like
 	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");
+	glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) GETPROCADDR("glGenFramebuffers");
+	glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) GETPROCADDR("glBindFramebuffer");
+	glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) GETPROCADDR("glDeleteFramebuffers");
+	glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) GETPROCADDR("glGenRenderbuffers");
+	glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) GETPROCADDR("glBindRenderbuffer");
+	glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) GETPROCADDR("glDeleteRenderbuffers");
+	glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC) GETPROCADDR("glRenderbufferStorageMultisample");
+	glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) GETPROCADDR("glFramebufferRenderbuffer");
+	glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) GETPROCADDR("glFramebufferTexture2D");
+	glFramebufferTextureLayer = (PFNGLFRAMEBUFFERTEXTURELAYERPROC) GETPROCADDR("glFramebufferTextureLayer");
+	glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC) GETPROCADDR("glBlitFramebuffer");
 	
 	// textures
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
+	glTexImage3D = (PFNGLTEXIMAGE3DPROC) GETPROCADDR("glTexImage3D");
 }

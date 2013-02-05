@@ -9,7 +9,7 @@ CC = cl /EHsc /nologo /c
 # linker with flags
 LNK = lib /nologo
 # output obj files
-OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj shader.obj camera.obj texture.obj obj.obj
+OBJ = winglbase.obj glextensionfuncs.obj matrixstack.obj shader.obj camera.obj texture.obj obj.obj framebuffer.obj
 # include directories
 INC = include
 # additional libraries

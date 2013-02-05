@@ -32,19 +32,6 @@ class Obj
 	private:
 		// bounding box
 		fl3 min_, max_;
-		struct PTNvert {
-			fl3 pos_;
-			fl3 tex_;
-			fl3 norm_;
-		};
-		struct PTvert {
-			fl3 pos_;
-			fl3 tex_;
-		};
-		struct PNvert {
-			fl3 pos_;
-			fl3 norm_;
-		};
 		
 		// struct for materials
 		struct ObjMaterial {

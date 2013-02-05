@@ -29,5 +29,6 @@ class Texture
 
 		GLuint id_;
 		int2 dims_;
+		bool original_;
 };
 #endif // TEXTURE_H

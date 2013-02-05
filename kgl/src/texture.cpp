@@ -4,11 +4,14 @@
 #include <stdio.h>
 #include "jpeglib.h"
 
-Texture::Texture() : id_(0), dims_() {}
+Texture::Texture() : id_(0), dims_(), original_(true)
+{
+	glGenTextures(1, &id_);
+}
 
-Texture::Texture(const Texture &other) : id_(other.id_), dims_(other.dims_) {}
+Texture::Texture(const Texture &other) : id_(other.id_), dims_(other.dims_), original_(false) {}
 
-Texture::Texture(const char *filename) : id_(0), dims_()
+Texture::Texture(const char *filename) : id_(0), dims_(), original_(true)
 {
 	//~ printf("loading texture image from %s\n", filename); fflush(stdout);
 	if(init(filename)) {
@@ -18,8 +21,10 @@ Texture::Texture(const char *filename) : id_(0), dims_()
 
 Texture::~Texture()
 {
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDeleteTextures(1, &id_);
+	if (original_) {
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDeleteTextures(1, &id_);
+	}
 }
 
 void Texture::bind()

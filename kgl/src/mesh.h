@@ -21,6 +21,7 @@ template <typename T> struct GLTypeToEnum {};
 template<> struct GLTypeToEnum<GLfloat> { enum { value = GL_FLOAT }; };
 template<> struct GLTypeToEnum<GLuint> { enum { value = GL_UNSIGNED_INT }; };
 template<> struct GLTypeToEnum<GLushort> { enum { value = GL_UNSIGNED_SHORT }; };
+template<> struct GLTypeToEnum<GLubyte> { enum { value = GL_UNSIGNED_BYTE }; };
 
 // V is a custom vertex struct with all of the attributes defined in order
 template<typename V> class VertexBufferSpec

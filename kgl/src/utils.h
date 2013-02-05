@@ -115,4 +115,19 @@ static bool operator< (const int3 &first, const int3 &second)
 	return (&first < &second);
 }
 
+// some common vertex structs
+struct PTNvert {
+	fl3 pos_;
+	fl3 tex_;
+	fl3 norm_;
+};
+struct PTvert {
+	fl3 pos_;
+	fl3 tex_;
+};
+struct PNvert {
+	fl3 pos_;
+	fl3 norm_;
+};
+
 #endif // UTILS_H
