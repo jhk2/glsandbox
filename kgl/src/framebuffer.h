@@ -32,6 +32,7 @@ class Framebuffer
 		void resize(GLuint width, GLuint height);
 	protected:
 		bool init(bool gen = true);
+		bool checkStatus(GLenum target);
 	
 		GLuint depth_, *color_, id_;
 		FramebufferParams params_;

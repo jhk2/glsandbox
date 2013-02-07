@@ -71,7 +71,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	params.filter = GL_LINEAR;
 	fbuf = new Framebuffer(params);
 	
-	params.numSamples = 4;
+	GLint maxsamples;
+	//~ glGetIntegerv(GL_MAX_SAMPLES_EXT, &maxsamples);
+	//~ printf("max msaa is %i\n", maxsamples); fflush(stdout);
+	params.numSamples = 16;
+	params.type = GL_TEXTURE_2D_MULTISAMPLE;
 	msbuf = new Framebuffer(params);
 	
 	printf("init quad data\n"); fflush(stdout);
