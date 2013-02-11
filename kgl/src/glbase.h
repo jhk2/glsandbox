@@ -22,6 +22,7 @@ class GLBase
 		virtual long double currentMillis() = 0;
 		unsigned int getWidth() { return width_; }
 		unsigned int getHeight() { return height_; }
+		float getAspect() { return ((float) width_) / ((float) height_); }
 		bool isActive() { return running_; }
 		virtual void close() = 0;
 		

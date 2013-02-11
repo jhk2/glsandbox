@@ -30,6 +30,8 @@ class Framebuffer
 		bool bindDepthTexture();
 		void blit(Framebuffer &dest);
 		void resize(GLuint width, GLuint height);
+		GLuint getWidth();
+		GLuint getHeight();
 	protected:
 		bool init(bool gen = true);
 		bool checkStatus(GLenum target);

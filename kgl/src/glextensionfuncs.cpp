@@ -8,9 +8,6 @@
 #define GETPROCADDR IDKHowToGetProcAddress
 #endif
 
-// matrix operations
-PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
-
 // vertex buffers
 PFNGLBINDBUFFERPROC glBindBuffer;
 PFNGLGENBUFFERSPROC glGenBuffers;
@@ -40,8 +37,13 @@ PFNGLDELETESHADERPROC glDeleteShader;
 // uniform variables
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM1UIPROC glUniform1ui;
+PFNGLUNIFORM1IPROC glUniform1i;
 PFNGLUNIFORM1FPROC glUniform1f;
 PFNGLUNIFORM3FVPROC glUniform3fv;
+// matrix operations
+PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+// reading back uniforms
+PFNGLGETUNIFORMUIVPROC glGetUniformuiv;
 
 // frame buffers and the like
 PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
@@ -68,10 +70,7 @@ PFNGLTEXIMAGE3DPROC glTexImage3D;
 PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
 
 void loadGLExtensions()
-{
-	// matrix operations
-	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) GETPROCADDR("glUniformMatrix4fv");
-	
+{	
 	// vertex buffers
 	glBindBuffer = (PFNGLBINDBUFFERPROC) GETPROCADDR("glBindBuffer");
 	glGenBuffers = (PFNGLGENBUFFERSPROC) GETPROCADDR("glGenBuffers");
@@ -101,8 +100,13 @@ void loadGLExtensions()
 	// uniform variables
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) GETPROCADDR("glGetUniformLocation");
 	glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glUniform1ui");
+	glUniform1i = (PFNGLUNIFORM1IPROC) GETPROCADDR("glUniform1i");
 	glUniform1f = (PFNGLUNIFORM1FPROC) GETPROCADDR("glUniform1f");
 	glUniform3fv = (PFNGLUNIFORM3FVPROC) GETPROCADDR("glUniform3fv");
+	// matrix operations
+	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) GETPROCADDR("glUniformMatrix4fv");
+	// reading back uniforms
+	glGetUniformuiv = (PFNGLGETUNIFORMUIVPROC) GETPROCADDR("glGetUniformuiv");
 	
 	// frame buffers and the like
 	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");

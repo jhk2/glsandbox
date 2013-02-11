@@ -15,6 +15,10 @@ struct fl3 {
 	fl3() : x(0), y(0), z(0) {};
 	fl3(const fl3 &other) : x(other.x), y(other.y), z(other.z) {};
 	fl3(const float nx, const float ny, const float nz) : x(nx), y(ny), z(nz) {};
+	bool fl3::isZero()
+	{
+		return x==0 && y==0 && z==0;
+	}
 	void fl3::normalize() 
 	{
 		float magnitude = sqrt(x*x + y*y + z*z);
@@ -23,14 +27,26 @@ struct fl3 {
 		x /= magnitude;
 		y /= magnitude;
 		z /= magnitude;
-	};
+	}
+	bool fl3::operator==(const fl3 &other)
+	{
+		return x==other.x && y==other.y && z==other.z;
+	}
+	fl3 fl3::operator-()
+	{
+		return fl3(-x,-y,-z);
+	}
 	fl3 fl3::operator*(const float &scalar)
 	{
 		return fl3(x*scalar, y*scalar, z*scalar);
-	};
+	}
 	fl3 fl3::operator+(const fl3 &other)
 	{
 		return fl3(x+other.x, y+other.y, z+other.z);
+	}
+	fl3 fl3::operator-(const fl3 &other)
+	{
+		return fl3(x-other.x, y-other.y, z-other.z);
 	}
 	fl3& fl3::operator+=(const fl3 &other)
 	{
@@ -41,6 +57,14 @@ struct fl3 {
 	{
 		x*=scalar; y*=scalar; z*=scalar;
 		return *this;
+	}
+	static float fl3::dot(const fl3 &first, const fl3 &second)
+	{
+		return first.x*second.x + first.y*second.y + first.z*second.z;
+	}
+	static fl3 fl3::cross(const fl3 &first, const fl3&second)
+	{
+		return fl3(first.y*second.z - first.z*second.y, first.z*second.x - first.x*second.z, first.x*second.y - first.y*second.x);
 	}
 };
 

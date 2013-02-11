@@ -26,7 +26,7 @@ class Obj
 		Obj(const char *filename);
 		virtual ~Obj();
 	
-		void draw(Shader &shader, MatrixStack &matstack);
+		void draw(Shader &shader);
 		void getBounds(fl3 &min, fl3 &max);
 		
 	private:

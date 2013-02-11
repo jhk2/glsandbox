@@ -2,6 +2,7 @@
 #include <cmath>
 #include "glextensionfuncs.h"
 #include "constants.h"
+#include <stdio.h>
 
 /* omitted singleton stuff
 // This var keeps track of the single instance of MatrixStack
@@ -406,4 +407,10 @@ MatrixStack::normalize(float *a) {
     a[2] /= mag;
 }
     
-
+void
+MatrixStack::printMatrix(MatrixTypes aType) {
+	float *m = mMatrix[aType];
+	for (int i = 0; i < 4; i++) {
+		printf("%f %f %f %f\n", m[i], m[i+4], m[i+8], m[i+12]); fflush(stdout);
+	}
+}

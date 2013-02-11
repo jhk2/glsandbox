@@ -237,4 +237,14 @@ bool Framebuffer::checkStatus(GLenum target) {
         }
 
         return false;
-    }
+}
+
+GLuint Framebuffer::getWidth()
+{
+	return params_.width;
+}
+
+GLuint Framebuffer::getHeight()
+{
+	return params_.height;
+}

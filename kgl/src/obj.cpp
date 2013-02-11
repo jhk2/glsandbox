@@ -22,7 +22,7 @@ Obj::~Obj()
 	}
 }
 
-void Obj::draw(Shader &shader, MatrixStack &matstack)
+void Obj::draw(Shader &shader)
 {
 	//~ printf("drawing obj\n"); fflush(stdout);
 	// go through all of the sub meshes in the map
@@ -58,42 +58,38 @@ void Obj::draw(Shader &shader, MatrixStack &matstack)
 			glUniform1f(Tr, curmat.Tr);
 		}
 		if (Tf != -1) {
-			glUniform3fv(Tf, 3, &curmat.Tf.x);
+			glUniform3fv(Tf, 1, &curmat.Tf.x);
 		}
 		if (illum != -1) {
 			glUniform1ui(illum, curmat.illum);
 		}
 		if (Ka != -1) {
-			glUniform3fv(Ka, 3, &curmat.Ka.x);
+			glUniform3fv(Ka, 1, &curmat.Ka.x);
 		}
 		if (Kd != -1) {
-			glUniform3fv(Kd, 3, &curmat.Kd.x);
+			glUniform3fv(Kd, 1, &curmat.Kd.x);
 		}
 		if (Ks != -1) {
-			glUniform3fv(Ks, 3, &curmat.Ks.x);
+			glUniform3fv(Ks, 1, &curmat.Ks.x);
 		}
 		if (Ke != -1) {
-			glUniform3fv(Ke, 3, &curmat.Ke.x);
+			glUniform3fv(Ke, 1, &curmat.Ke.x);
 		}
 		if (map_Ka != -1) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, curmat.map_Ka->getID());
-			glUniform1ui(map_Ka, 0);
+			glUniform1i(map_Ka, 0);
 		}
 		if (map_Kd != -1) {
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, curmat.map_Kd->getID());
-			glUniform1ui(map_Kd, 1);
+			glUniform1i(map_Kd, 1);
 		}
 		if (map_Ks != -1) {
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, curmat.map_Ks->getID());
-			glUniform1ui(map_Ks, 2);
+			glUniform1i(map_Ks, 2);
 		}
-		//~ printf("send matrices\n"); fflush(stdout);
-		matstack.matrixToUniform(MatrixStack::MODELVIEW);
-		matstack.matrixToUniform(MatrixStack::PROJECTION);
-		//~ printf("get mesh and draw\n"); fflush(stdout);
 		ObjMesh &curmesh = *(iter->second.first);
 		curmesh.draw();
 		glActiveTexture(GL_TEXTURE2);
@@ -103,8 +99,6 @@ void Obj::draw(Shader &shader, MatrixStack &matstack)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	//~ printf("done with objdraw\n"); fflush(stdout);
-	glUseProgram(0);
 }
 
 void Obj::getBounds(fl3 &min, fl3 &max)

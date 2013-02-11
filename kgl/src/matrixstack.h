@@ -85,6 +85,9 @@ class MatrixStack {
 		// send matrices to OpenGL
 		void matrixToUniform(MatrixTypes aType);
 		void matrixToGL(MatrixTypes aType);
+		
+		// debug printing
+		void printMatrix(MatrixTypes aType);
 
 	protected:
 

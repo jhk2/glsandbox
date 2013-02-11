@@ -37,7 +37,7 @@ void WinGLBase::resize(unsigned int width, unsigned int height)
 {
 	width_ = width;
 	height_ = height;
-	glViewport(0,0,width,height);
+	//glViewport(0,0,width,height);
 }
 
 void WinGLBase::swapBuffers()
