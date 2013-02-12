@@ -19,6 +19,12 @@ out vec3 out_Norm;
 out vec4 light_Tex;
 out vec4 lightPos;
 
+const mat4 biasMatrix = mat4(
+	vec4(0.5,0,0,0),
+	vec4(0,0.5,0,0),
+	vec4(0,0,0.5,0),
+	vec4(0.5,0.5,0.5,1.0));
+
 void main()
 {
 	out_Tex = in_Tex.xy;
@@ -29,7 +35,7 @@ void main()
 	gl_Position = pjMatrix * out_Pos;
 	
 	// position in light space
-	light_Tex = lightpj * lightmv * vec4(in_Pos, 1);
+	light_Tex = biasMatrix * lightpj * lightmv * vec4(in_Pos, 1);
 	
 	// position of light in camera space
 	lightPos = mvMatrix * vec4(light_Pos, 1);
@@ -59,15 +65,15 @@ uniform float Kd;
 
 uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;
-uniform sampler2D shadow;
+uniform sampler2DShadow shadow;
 
 void main() {
-	float kshadow = 1.0f;
-	vec3 lTex = (light_Tex.xyz / light_Tex.w) * 0.5 + vec3(0.5);
-	bvec2 outside = greaterThan(lTex.xy,vec2(1.0,1.0));
+	vec2 lTex = light_Tex.xy / light_Tex.w;
+	bvec2 outside = greaterThan(lTex,vec2(1.0,1.0));
 	bvec2 inside = lessThan(lTex.xy,vec2(0,0));
-	if ((texture(shadow, lTex.xy).r < lTex.z - depthBias)||any(outside)||any(inside)) {
-		kshadow = 0.0f;
+	float kshadow = textureProj(shadow, light_Tex);
+	if (any(inside)||any(outside)) {
+		kshadow = 0.0;
 	}
 	
 	// vector from object to light

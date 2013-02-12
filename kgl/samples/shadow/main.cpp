@@ -192,7 +192,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	printf("verts vector created\n"); fflush(stdout);
 	std::vector<GLubyte> inds;
 	inds.push_back(0x0); inds.push_back(0x1); inds.push_back(0x2); inds.push_back(0x3);
-	printf("make mesh from quad data\n"); fflush(stdout);ss
+	printf("make mesh from quad data\n"); fflush(stdout);
 	
 	Mesh<PTvert, GLubyte> quad (GL_QUADS);
 	quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3)).addVerts(verts).addInds(inds).finalize();
@@ -287,7 +287,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// draw from light's point of view
 		shadowmap->bind();
 		{
-			//glCullFace(GL_FRONT);
+			glCullFace(GL_FRONT);
 			glViewport(0, 0, shadowmap->getWidth(), shadowmap->getHeight());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glEnable(GL_DEPTH_TEST);
@@ -334,7 +334,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		
 		// draw from camera's point of view
 		{
-			//glCullFace(GL_BACK);
+			glCullFace(GL_BACK);
 			glViewport(0, 0, window->getWidth(), window->getHeight());
 			fbuf->bind();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

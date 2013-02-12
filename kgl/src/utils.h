@@ -108,11 +108,11 @@ struct int2 {
 	int2 int2::operator+(const int2 &other)
 	{
 		return int2(x+other.x, y+other.y);
-	};
+	}
 	int2 int2::operator-(const int2 &other)
 	{
 		return int2(x-other.x, y-other.y);
-	};
+	}
 };
 
 struct int3 {
@@ -136,7 +136,20 @@ struct int3 {
 // compare operator for use as a map key weak ordering
 static bool operator< (const int3 &first, const int3 &second)
 {
-	return (&first < &second);
+	if (first.x < second.x)
+		return true;
+	if (first.x > second.x)
+		return false;
+	
+	if (first.y < second.y)
+		return true;
+	if (first.y > second.y)
+		return false;
+	
+	if (first.z < second.z)
+		return true;
+	return false;
+	//~ return (&first < &second);
 }
 
 // some common vertex structs
