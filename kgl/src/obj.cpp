@@ -179,16 +179,20 @@ bool Obj::loadFile(const char *filename)
 			ObjMesh *currentmesh = 0;
 			if (texs_.size() == 0 && norms_.size() == 0) {
 				// we only have positions
+				printf("create new PMesh\n"); fflush(stdout);
 				currentmesh = createPMesh(pFile);
 			} else if (texs_.size() == 0) {
 				// we have positions and normals
 				//printf("we've read %u verts and %u normals\n", verts_.size(), norms_.size()); fflush(stdout);
+				printf("create new PNMesh\n"); fflush(stdout);
 				currentmesh = createPNMesh(pFile);
 			} else if (norms_.size() == 0) {
 				// we have positions and texcoords
+				printf("create new PTMesh\n"); fflush(stdout);
 				currentmesh = createPTMesh(pFile);
 			} else {
 				// we have all 3
+				printf("create new PTNMesh\n"); fflush(stdout);
 				currentmesh = createPTNMesh(pFile);
 			}
 			// put it in the map
@@ -196,9 +200,10 @@ bool Obj::loadFile(const char *filename)
 				meshname = "default";
 			}
 			if(meshes_.find(meshname) == meshes_.end()) {
+				printf("inserting new mesh with name %s\n", meshname.c_str()); fflush(stdout);
 				meshes_[meshname] = std::pair<ObjMesh*,ObjMaterial*>(currentmesh, currentmat);
 			} else {
-				printf("tried to insert mesh which already existed with name %s\n", meshname.c_str());
+				printf("tried to insert mesh which already existed with name %s\n", meshname.c_str()); fflush(stdout);
 			}
 		}
 		fgetpos(pFile, &lastread);
@@ -234,6 +239,7 @@ bool Obj::loadMaterials(const char *filename)
 	
 	char buf[512] = "";
 	while (fscanf(pFile, "%s", buf) > 0) {
+		//printf("buf contents %s\n", buf); fflush(stdout);
 		if (strcmp(buf, "newmtl") == 0) {
 			fscanf(pFile, "%s", buf);
 			ObjMaterial *newmat = new ObjMaterial();
@@ -359,6 +365,7 @@ Obj::ObjMesh* Obj::createPTNMesh(FILE *file)
 
 Obj::ObjMesh* Obj::createPTMesh(FILE *file)
 {
+	unsigned int read = 0;
 	currentcombo_ = 0;
 	combos_.clear();
 	Mesh<PTvert, GLuint> *mesh = new Mesh<PTvert, GLuint>(GL_TRIANGLES);
@@ -368,14 +375,20 @@ Obj::ObjMesh* Obj::createPTMesh(FILE *file)
 	char buf[512] = "";
 	fgetpos(file, &lastpos);
 	while (fscanf(file, "%s", buf) > 0) {
+		//~ printf("buf contents: %s\n", buf); fflush(stdout);
 		if (strcmp(buf, "f") != 0) {
 			// we hit something other than "f"
+			//~ printf("hit something other than f: %s\n", buf); fflush(stdout);
 			fsetpos(file, &lastpos);
 			break;
 		} else {
 			// read the face
 			int3 v[3];
-			fscanf(file, "%u/%u %u/%u %u/%u", &v[0].x, &v[0].y, &v[1].x, &v[1].y, &v[2].x, &v[2].y);
+			unsigned int scanned = fscanf(file, "%u/%u %u/%u %u/%u", &v[0].x, &v[0].y, &v[1].x, &v[1].y, &v[2].x, &v[2].y);
+			//~ if(scanned != 6) {
+				//~ printf("scanned less than 6 items: %u/%u %u/%u %u/%u\n", v[0].x, v[0].y, v[1].x, v[1].y, v[2].x, v[2].y);
+				//~ fflush(stdout);
+			//~ }
 			// check if each of them is contained
 			PTvert vert;
 			for (int i = 0; i < 3; i++) {
@@ -393,9 +406,11 @@ Obj::ObjMesh* Obj::createPTMesh(FILE *file)
 					mesh->addInd(combos_[cur]);
 				}
 			}
+			read++;
 		}
 		fgetpos(file, &lastpos);
 	}
+	//~ printf("read %u faces\n", read); fflush(stdout);
 	mesh->finalize();
 	// we've read all the faces, so make the mesh
 	return new PTMesh(mesh);

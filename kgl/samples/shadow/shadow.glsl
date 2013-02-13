@@ -50,7 +50,7 @@ void main()
 
 #ifdef _FRAGMENT_
 
-const float depthBias = 0.005;
+const float depthBias = 0.5;
 
 in vec4 out_Pos;
 in vec2 out_Tex;
@@ -65,13 +65,21 @@ uniform float Kd;
 
 uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;
-uniform sampler2DShadow shadow;
+uniform sampler2D shadow;
 
 void main() {
 	vec2 lTex = light_Tex.xy / light_Tex.w;
 	bvec2 outside = greaterThan(lTex,vec2(1.0,1.0));
 	bvec2 inside = lessThan(lTex.xy,vec2(0,0));
-	float kshadow = textureProj(shadow, light_Tex);
+	// for sampler2DShadow
+	//float kshadow = textureProj(shadow, light_Tex);
+	float kshadow = 1.0;
+	out_Color = vec4(1.0, 0, 0, 1.0);
+	if (textureProj(shadow, light_Tex).r < (light_Tex.z / light_Tex.w) - depthBias) {
+		kshadow = 0.0;
+		out_Color = vec4(0, 1.0, 0, 1.0);
+	}
+	return;
 	if (any(inside)||any(outside)) {
 		kshadow = 0.0;
 	}
