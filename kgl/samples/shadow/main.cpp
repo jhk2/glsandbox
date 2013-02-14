@@ -209,7 +209,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Mesh<PTNvert, GLubyte> gquad (GL_QUADS);
 	gquad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3)).addAttrib(2, AttributeInfoSpec<GLfloat>(3)).addVerts(gverts).addInds(inds).finalize();
 	
-	Obj testobj ("../assets/cube.obj");
+	Obj testobj ("../assets/ServerBot1.obj");
 	fl3 objmin, objmax;
 	testobj.getBounds(objmin, objmax);
 	printf("obj bounds are %f,%f,%f to %f,%f,%f\n", objmin.x, objmin.y, objmin.z, objmax.x, objmax.y, objmax.z); fflush(stdout);

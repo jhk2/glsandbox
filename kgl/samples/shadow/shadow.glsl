@@ -65,21 +65,14 @@ uniform float Kd;
 
 uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;
-uniform sampler2D shadow;
+uniform sampler2DShadow shadow;
 
 void main() {
 	vec2 lTex = light_Tex.xy / light_Tex.w;
 	bvec2 outside = greaterThan(lTex,vec2(1.0,1.0));
 	bvec2 inside = lessThan(lTex.xy,vec2(0,0));
 	// for sampler2DShadow
-	//float kshadow = textureProj(shadow, light_Tex);
-	float kshadow = 1.0;
-	out_Color = vec4(1.0, 0, 0, 1.0);
-	if (textureProj(shadow, light_Tex).r < (light_Tex.z / light_Tex.w) - depthBias) {
-		kshadow = 0.0;
-		out_Color = vec4(0, 1.0, 0, 1.0);
-	}
-	return;
+	float kshadow = textureProj(shadow, light_Tex);
 	if (any(inside)||any(outside)) {
 		kshadow = 0.0;
 	}
@@ -90,18 +83,12 @@ void main() {
 	
 	// diffuse lighting is n dot l
 	vec4 diffuseTex = texture(map_Kd, out_Tex);
-	vec3 diffuse = dot(objtolight.xyz, out_Norm) * Kd * kshadow * diffuseTex.xyz;
-	//vec3 diffuse = Kd * diffuseTex.xyz;
+	float ndotl = max(dot(objtolight.xyz, out_Norm), 0);
+	vec3 diffuse = ndotl * Kd * kshadow * diffuseTex.xyz;
+	
 	vec4 ambientTex = texture(map_Ka, out_Tex);
 	vec3 ambient = Ka * ambientTex.xyz;
 	
 	out_Color = vec4(diffuse + ambient, min(1.0, diffuseTex.w + ambientTex.w));
-	//out_Color = vec4(kshadow*ambientTex.xyz, 1.0f);
-	
-	//out_Color = texture(shadow, lTex.xy);
-	//out_Color = texture(shadow, (light_Tex.xy / light_Tex.w) * 0.5 + vec2(0.5));
-	//out_Color = texture(shadow, light_Tex.xy * 0.5 + vec2(0.5));
-	//out_Color = vec4((light_Pos.xy / light_Pos.w) * 0.5 + vec2(0.5), 0, 1.0);
-	//out_Color = vec4(light_Tex * 0.5 + vec2(0.5), 0, 1.0);
 }
 #endif
