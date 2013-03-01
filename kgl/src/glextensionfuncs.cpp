@@ -69,6 +69,9 @@ PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLTEXIMAGE3DPROC glTexImage3D;
 PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
 
+// color clamping
+PFNGLCLAMPCOLORPROC glClampColor;
+
 void loadGLExtensions()
 {	
 	// vertex buffers
@@ -131,4 +134,7 @@ void loadGLExtensions()
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
 	glTexImage3D = (PFNGLTEXIMAGE3DPROC) GETPROCADDR("glTexImage3D");
 	glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC) GETPROCADDR("glTexImage2DMultisample");
+	
+	// color clamping
+	glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");
 }

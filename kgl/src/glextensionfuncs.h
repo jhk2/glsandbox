@@ -70,6 +70,9 @@ extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLTEXIMAGE3DPROC glTexImage3D;
 extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
 
+// color clamping
+extern PFNGLCLAMPCOLORPROC glClampColor;
+
 // image units
 /*
 typedef void (APIENTRYP PFNGLBINDIMAGETEXTUREPROC) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
