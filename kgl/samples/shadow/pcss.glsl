@@ -4,6 +4,7 @@
 #version 430 core
 
 uniform mat4 lightmv;
+#define M_PI 3.1415926535897932384626433832795
 
 #ifdef _VERTEX_
 
@@ -76,7 +77,7 @@ uniform sampler2D shadowTex;
 
 
 #define BLOCKER_SEARCH_NUM_SAMPLES 16
-#define PCF_NUM_SAMPLES 32
+#define PCF_NUM_SAMPLES 64
 #define LIGHT_SIZE 0.1
 
 // poisson disk for sampling
@@ -147,6 +148,22 @@ const vec2 poissonDisk[64] = {
 	vec2( -0.5080366f, 0.8539945f )
 };
 
+float gaussian(float radius, float x) {
+	return 1.0f;
+	// radius should be about 3*sigma
+	float sigma = radius / 3;
+	return (1/(sigma*sqrt(2*M_PI))) * exp(-0.5*x*x/(sigma*sigma));
+}
+
+// pseudorandom number generator
+float rand(vec2 co){
+	return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+float rand(vec4 co){
+	float dot_product = dot(co, vec4(12.9898,78.233,45.164,94.673));
+	return fract(sin(dot_product) * 43758.5453);
+}
+
 // parallel plane estimation
 float penumbraSize(float zReceiver, float zBlocker) {
 	return (zReceiver - zBlocker) / zBlocker;
@@ -170,13 +187,16 @@ vec2 findBlocker(vec2 texCoord, float zReceiver) {
 
 float pcf(vec2 texCoord, float zReceiver, float filterRadius) {
 	float sum = 0;
+	float theta = rand(vec4(texCoord, gl_FragCoord.xy));
+	mat2 rotation = mat2(vec2(cos(theta), sin(theta)), vec2(-sin(theta), cos(theta)));
 	for (int i = 0; i < PCF_NUM_SAMPLES; i++) {
-		vec2 offset = poissonDisk[i] * filterRadius;
+		vec2 offset = (rotation*poissonDisk[i]) * filterRadius;
 		vec2 texOffset = texCoord + offset;
 		bvec2 outside = greaterThan(texOffset, vec2(1.0,1.0));
 		bvec2 inside = lessThan(texOffset, vec2(0,0));
 		float ishadow = texture(shadow, vec3(texOffset, zReceiver));
-		sum += (any(outside)||any(inside)) ? 1.0f : ishadow;
+		//float gauss = gaussian(filterRadius, length(offset));
+		sum += ((any(outside)||any(inside)) ? 1.0f : ishadow);
 	}
 	return sum / PCF_NUM_SAMPLES;
 }
@@ -203,44 +223,7 @@ void main() {
 	float kshadow = pcss(lTex);
 	//float kshadow = pcf(lTex.xy, lTex.z, 0.05);
 	
-	float smap = texture(shadowTex, lTex.xy).r;
-	
-	/*
-	if (kshadow == 9) {
-		out_Color = vec4(1.0,1.0,1.0,1.0);
-	} else if (kshadow == 8) {
-		out_Color = vec4(1.0,1.0,0,1.0);
-	} else if (kshadow == 7) {
-		out_Color = vec4(1.0,0,1.0,1.0);
-	} else if (kshadow == 6) {
-		out_Color = vec4(0,1.0,1.0,1.0);
-	} else if (kshadow == 5) {
-		out_Color = vec4(1.0, 0, 0, 1.0);
-	} else if (kshadow == 4) {
-		out_Color = vec4(0, 1.0, 0, 1.0);
-	} else if (kshadow == 3) {
-		out_Color = vec4(0, 0, 1.0, 1.0);
-	} else {
-		out_Color = vec4(0,0,0,1.0);
-	}
-	return;
-	*/
-
-	/*
-	float kshadow = 1.0f;
-	float smap = texture(shadowTex, lTex.xy).r;
-	if (smap == vec4(1.0)) {
-		out_Color = vec4(1.0, 0, 0, 1.0);
-		return;
-	}
-	if (smap < lTex.z) {
-		kshadow = 0.0f;
-	}
-	*/
-	
-	if (any(inside)||any(outside)) {
-		kshadow = 0.0;
-	}
+	//float smap = texture(shadowTex, lTex.xy).r;
 	
 	// vector from object to light
 	vec4 objtolight = lightPos - out_Pos;
