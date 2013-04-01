@@ -220,11 +220,7 @@ void main() {
 	bvec2 outside = greaterThan(lTex.xy,vec2(1.0,1.0));
 	bvec2 inside = lessThan(lTex.xy,vec2(0,0));
 	// for sampler2DShadow
-	float kshadow = 0;
-	
-	if (all(not(inside)) && all(not(outside))) {
-		kshadow = pcss(lTex);
-	}
+	float kshadow = pcss(lTex);
 	//float kshadow = pcf(lTex.xy, lTex.z, 0.05);
 	
 	//float smap = texture(shadowTex, lTex.xy).r;

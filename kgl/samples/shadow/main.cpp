@@ -14,31 +14,23 @@
 
 #define MOUSE_SENSITIVITY 20.f
 #define MOVESPEED 0.05f
-#define CASCADES 0
 
 MatrixStack mats;
 MatrixStack lmats;
 Camera cam;
 Framebuffer *fbuf;
-Framebuffer **shadowmaps;
+Framebuffer *shadowmap;
 WinGLBase *window;
 
-float quickPow(float x, unsigned int pow) {
-	if (pow == 0) return 1;
-	if (pow == 1) return x;
-	return x * quickPow(x, pow - 1);
-}
-
 struct SpotLight {
-	SpotLight(fl3 &pos, unsigned int cascades = CASCADES) : pos_(pos), fovy_(45), aspect_(1.0f), near_(20.0f), far_(100.0f), mesh_(GL_LINES), cascades_(cascades)
+	SpotLight(fl3 &pos) : pos_(pos), fovy_(45), aspect_(1.0f), near_(20.0f), far_(100.0f), mesh_(GL_LINES)
 	{
 		init();
 	}
 	// drawing from the light's pov (for shadow map generation)
-	void multPovMatrix(MatrixStack &mstack, unsigned int cascade = 0)
+	void multPovMatrix(MatrixStack &mstack)
 	{
-		fl2 planes = getCascadePlanes(cascade);
-		mstack.perspective(fovy_, aspect_, planes.x, planes.y);
+		mstack.perspective(fovy_, aspect_, near_, far_);
 		mstack.lookAt(pos_.x, pos_.y, pos_.z, 0, 0, 0, 0, 1, 0);
 	};
 	// for transforming the frustum to be drawn on screen to visualize the light
@@ -117,56 +109,15 @@ struct SpotLight {
 		inds.push_back(0xb); inds.push_back(0xc);
 		inds.push_back(0xc); inds.push_back(0x9);
 		
-		// for each cascade division
-		for (unsigned int i = 0; i < cascades_; i++) {
-			// calculate cascade Z position
-			float divPos = getCascadeDepth(i+1);
-			float divx = divPos * xbase;
-			float divy = divPos * ybase;
-			v.pos_ = fl3(divx, divy, -divPos); v.tex_ = fl3(0,0,1); mesh_.addVert(v);
-			v.pos_ = fl3(-divx, divy, -divPos); mesh_.addVert(v);
-			v.pos_ = fl3(-divx, -divy, -divPos); mesh_.addVert(v);
-			v.pos_ = fl3(divx, -divy, -divPos); mesh_.addVert(v);
-			// next available is 0xd
-			// each cascade adds 4 vertices
-			GLubyte off = 4*i;
-			inds.push_back(0xd + off); inds.push_back(0xe + off);
-			inds.push_back(0xe + off); inds.push_back(0xf + off);
-			inds.push_back(0xf + off); inds.push_back(0x10 + off);
-			inds.push_back(0x10 + off); inds.push_back(0xd + off);
-		}
-		
 		printf("finalizing frustum\n"); fflush(stdout);
 		mesh_.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(3, AttributeInfoSpec<GLfloat>(3)).addInds(inds).finalize();
 	};
-	
-	float getCascadeDepth(unsigned int level) {
-		float frac = quickPow(2, level); // cascade 1 is at 1/2, 2 is at 1/4, etc
-		return near_ + ((far_ - near_) / frac);
-	}
-	
-	// returns vector where x has near plane and y has far plane (z coordinate)
-	fl2 getCascadePlanes(unsigned int level) {
-		fl2 planes (near_, far_);
-		if (level != 0) {
-			// near plane needs to change
-			planes.x = getCascadeDepth(cascades_ - level + 1);
-		}
-		if (level != cascades_) {
-			// far plane needs to change
-			planes.y = getCascadeDepth(cascades_ - level);
-		}
-		printf("cascade planes for level %i are %f and %f\n", level, planes.x, planes.y); fflush(stdout);
-		return planes;
-	}
-	
 	fl3 pos_;
 	// for now it will always point at the origin
 	float fovy_;
 	float aspect_;
 	float near_;
 	float far_;
-	unsigned short cascades_;
 	// we'll substitute vertex colors for Tex and make it vertex attribute 3
 	Mesh<PTvert, GLubyte> mesh_;
 };
@@ -225,10 +176,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	params.width = 1024;
 	params.height = 1024;
 	params.filter = GL_NEAREST;
-	shadowmaps = new Framebuffer*[CASCADES+1];
-	for (unsigned int i = 0; i < CASCADES+1; i++) {
-		shadowmaps[i] = new Framebuffer(params);
-	}
+	shadowmap = new Framebuffer(params);
 	
 	printf("init quad data\n"); fflush(stdout);
 	// let's make a simple quad for a mesh
@@ -341,49 +289,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_BLEND);
 		// draw from light's point of view
-		// TODO: make this and drawing actual scene work with more than one cascade
-		for (unsigned int i = 0; i < 1; i++) {
-			Framebuffer *shadowmap = shadowmaps[i];
-			shadowmap->bind();
-			{
-				glCullFace(GL_FRONT);
-				glViewport(0, 0, shadowmap->getWidth(), shadowmap->getHeight());
-				// clear to the far plane value
-				glClearColor(1.f, 1.f, 1.f, 1.f);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				glEnable(GL_DEPTH_TEST);
-				lmats.pushMatrix(MatrixStack::MODELVIEW);
-				lmats.pushMatrix(MatrixStack::PROJECTION);
-				
-				lmats.loadIdentity(MatrixStack::MODELVIEW);
-				lmats.loadIdentity(MatrixStack::PROJECTION);
-				light.multPovMatrix(lmats, i);
-				
-				shadowgen.use();
-				lmats.initUniformLocs(shadowgen.getUniformLocation("mvMatrix"), shadowgen.getUniformLocation("pjMatrix"));
-				//~ lmats.pushMatrix(MatrixStack::MODELVIEW);
-				//~ lmats.scale(100, 1.0, 100);
-				lmats.matrixToUniform(MatrixStack::MODELVIEW);
-				lmats.matrixToUniform(MatrixStack::PROJECTION);
-				gquad.draw();
-				//~ lmats.popMatrix(MatrixStack::MODELVIEW);
-				testobj.draw(shadowgen);
-				
-				//~ colshader.use();
-				//~ mats.initUniformLocs(colshader.getUniformLocation("mvMatrix"), colshader.getUniformLocation("pjMatrix"));
-				//~ mats.pushMatrix(MatrixStack::MODELVIEW);
-				//~ light.multDrawMatrix(mats);
-				//~ mats.matrixToUniform(MatrixStack::MODELVIEW);
-				//~ mats.matrixToUniform(MatrixStack::PROJECTION);
-				//~ light.mesh_.draw();
-				//~ mats.popMatrix(MatrixStack::MODELVIEW);
-				//~ glUseProgram(0);
-				
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				
-				//lmats.popMatrix(MatrixStack::MODELVIEW);
-				//lmats.popMatrix(MatrixStack::PROJECTION);
-			}
+		shadowmap->bind();
+		{
+			glCullFace(GL_FRONT);
+			glViewport(0, 0, shadowmap->getWidth(), shadowmap->getHeight());
+			// clear to the far plane value
+			glClearColor(1.f, 1.f, 1.f, 1.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+			lmats.pushMatrix(MatrixStack::MODELVIEW);
+			lmats.pushMatrix(MatrixStack::PROJECTION);
+			
+			lmats.loadIdentity(MatrixStack::MODELVIEW);
+			lmats.loadIdentity(MatrixStack::PROJECTION);
+			light.multPovMatrix(lmats);
+			
+			shadowgen.use();
+			lmats.initUniformLocs(shadowgen.getUniformLocation("mvMatrix"), shadowgen.getUniformLocation("pjMatrix"));
+			//~ lmats.pushMatrix(MatrixStack::MODELVIEW);
+			//~ lmats.scale(100, 1.0, 100);
+			lmats.matrixToUniform(MatrixStack::MODELVIEW);
+			lmats.matrixToUniform(MatrixStack::PROJECTION);
+			gquad.draw();
+			//~ lmats.popMatrix(MatrixStack::MODELVIEW);
+			testobj.draw(shadowgen);
+			
+			//~ colshader.use();
+			//~ mats.initUniformLocs(colshader.getUniformLocation("mvMatrix"), colshader.getUniformLocation("pjMatrix"));
+			//~ mats.pushMatrix(MatrixStack::MODELVIEW);
+			//~ light.multDrawMatrix(mats);
+			//~ mats.matrixToUniform(MatrixStack::MODELVIEW);
+			//~ mats.matrixToUniform(MatrixStack::PROJECTION);
+			//~ light.mesh_.draw();
+			//~ mats.popMatrix(MatrixStack::MODELVIEW);
+			//~ glUseProgram(0);
+			
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			
+			//lmats.popMatrix(MatrixStack::MODELVIEW);
+			//lmats.popMatrix(MatrixStack::PROJECTION);
 		}
 		
 		// draw from camera's point of view
@@ -400,11 +344,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			tex.bind();
 			
 			glActiveTexture(GL_TEXTURE3);
-			shadowmaps[0]->bindDepthTexture();
+			shadowmap->bindDepthTexture();
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 			
 			glActiveTexture(GL_TEXTURE4);
-			shadowmaps[0]->bindColorTexture();
+			shadowmap->bindColorTexture();
 			
 			shadowshader.use();
 			mats.initUniformLocs(shadowshader.getUniformLocation("mvMatrix"), shadowshader.getUniformLocation("pjMatrix"));
@@ -433,6 +377,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
 			mats.matrixToUniform(MatrixStack::PROJECTION);
+			lmats.matrixToUniform(MatrixStack::MODELVIEW);
 			testobj.draw(shadowshader);
 			lmats.popMatrix(MatrixStack::MODELVIEW);
 			lmats.popMatrix(MatrixStack::PROJECTION);
@@ -463,14 +408,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			quad.draw();
 			
 			// draw the shadow map
-			shadowmaps[0]->bindColorTexture();
+			shadowmap->bindColorTexture();
 			mats.pushMatrix(MatrixStack::MODELVIEW);
 			mats.scale(0.4 / window->getAspect(), 0.4, 1.0);
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
 			mats.matrixToUniform(MatrixStack::PROJECTION);
 			quad.draw();
 			
-			shadowmaps[0]->bindDepthTexture();
+			shadowmap->bindDepthTexture();
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 			mats.translate(1.0f, 0, 0);
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
