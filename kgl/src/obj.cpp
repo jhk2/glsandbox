@@ -24,12 +24,15 @@ Obj::~Obj()
 
 void Obj::draw(Shader &shader)
 {
+	// assume that if more than one shader stage needs the uniforms they will be bound to the same pipeline object
 	//~ printf("drawing obj\n"); fflush(stdout);
 	// go through all of the sub meshes in the map
 	for (std::map<std::string, std::pair<ObjMesh *, ObjMaterial *>>::iterator iter = meshes_.begin(); iter != meshes_.end(); iter++) {
 		//~ printf("drawing submesh %s\n", iter->first.c_str()); fflush(stdout);
 		//~ printf("get material\n"); fflush(stdout);
 		ObjMaterial &curmat = *(iter->second.second);
+		
+		/*
 		// set material parameters as uniform values
 		//~ printf("get uniform locations\n"); fflush(stdout);
 		GLint Ns, Ni, Tr, Tf, illum, Ka, Kd, Ks, Ke, map_Ka, map_Kd, map_Ks;
@@ -90,14 +93,56 @@ void Obj::draw(Shader &shader)
 			glBindTexture(GL_TEXTURE_2D, curmat.map_Ks->getID());
 			glUniform1i(map_Ks, 2);
 		}
+		*/
+		
+		// Bind uniform buffer with material parameters
+		GLuint blockIndex = shader.getUniformBlockIndex("ObjMaterial");
+		if (blockIndex != -1) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, curmat.ubo);
+		}
+		
+		GLint map_Ka, map_Kd, map_Ks;
+		map_Ka = shader.getUniformLocation("map_Ka");
+		map_Kd = shader.getUniformLocation("map_Kd");
+		map_Ks = shader.getUniformLocation("map_Ks");
+		// bind textures to pre-determined locations
+		if (map_Ka != -1) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, curmat.map_Ka->getID());
+			glUniform1i(map_Ka, 0);
+		}
+		if (map_Kd != -1) {
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, curmat.map_Kd->getID());
+			glUniform1i(map_Kd, 1);
+		}
+		if (map_Ks != -1) {
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, curmat.map_Ks->getID());
+			glUniform1i(map_Ks, 2);
+		}
+		
+		//~ glActiveTexture(GL_TEXTURE0);
+		//~ glBindTexture(GL_TEXTURE_2D, curmat.map_Ka->getID());
+		//~ glActiveTexture(GL_TEXTURE1);
+		//~ glBindTexture(GL_TEXTURE_2D, curmat.map_Kd->getID());
+		//~ glActiveTexture(GL_TEXTURE2);
+		//~ glBindTexture(GL_TEXTURE_2D, curmat.map_Ks->getID());
+		
+		// draw the actual mesh
 		ObjMesh &curmesh = *(iter->second.first);
 		curmesh.draw();
+		
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		if (blockIndex != -1) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, 0);
+		}
 	}
 }
 
@@ -249,36 +294,36 @@ bool Obj::loadMaterials(const char *filename)
 		} else if (strcmp(buf, "Ns") == 0) {
 			float val;
 			fscanf(pFile, "%f", &val);
-			currentmat->Ns = val;
+			currentmat->ublock.Ns = val;
 		} else if (strcmp(buf, "Ni") == 0) {
 			float val;
 			fscanf(pFile, "%f", &val);
-			currentmat->Ni = val;
+			currentmat->ublock.Ni = val;
 		} else if (strcmp(buf, "d") == 0 || strcmp(buf, "Tr") == 0) {
 			float val;
 			fscanf(pFile, "%f", &val);
 			// for d/tf, might have another value already so take the max
-			currentmat->d = max(currentmat->d, val);
+			currentmat->ublock.d = max(currentmat->ublock.d, val);
 		} else if (strcmp(buf, "illum") == 0) {
 			unsigned int val;
 			fscanf(pFile, "%u", &val);
-			currentmat->illum = val;
+			currentmat->ublock.illum = val;
 		} else if (strcmp(buf, "Ka") == 0) {
 			fl3 val;
 			fscanf(pFile, "%f %f %f", &val.x, &val.y, &val.z);
-			currentmat->Ka = val;
+			currentmat->ublock.Ka = val;
 		} else if (strcmp(buf, "Kd") == 0) {
 			fl3 val;
 			fscanf(pFile, "%f %f %f", &val.x, &val.y, &val.z);
-			currentmat->Kd = val;
+			currentmat->ublock.Kd = val;
 		} else if (strcmp(buf, "Ks") == 0) {
 			fl3 val;
 			fscanf(pFile, "%f %f %f", &val.x, &val.y, &val.z);
-			currentmat->Ks = val;
+			currentmat->ublock.Ks = val;
 		} else if (strcmp(buf, "Ke") == 0) {
 			fl3 val;
 			fscanf(pFile, "%f %f %f", &val.x, &val.y, &val.z);
-			currentmat->Ke = val;
+			currentmat->ublock.Ke = val;
 		} else if (strcmp(buf, "map_Ka") == 0) {
 			fscanf(pFile, "%s", buf);
 			std::string texpath (buf);
@@ -308,7 +353,17 @@ bool Obj::loadMaterials(const char *filename)
 			currentmat->map_Ks = textures_[texpath];
 		}
 	}
-	return true;	
+	
+	for (std::map<std::string, ObjMaterial *>::iterator it = materials_.begin(); it != materials_.end(); it++) {
+		ObjMaterial *mat = it->second;
+		// make a uniform buffer for these properties
+		GLuint &ubo = mat->ubo;
+		glGenBuffers(1, &ubo);
+		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(ObjMaterial::ObjUniformBlock), &currentmat->ublock, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+	return true;
 }
 
 Obj::ObjMesh* Obj::createPTNMesh(FILE *file)

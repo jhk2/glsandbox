@@ -5,44 +5,6 @@
 #include <fstream>
 #include "debug.h"
 
-Shader::Shader(const char* filename, const unsigned int stages)
-{
-	loadShaderProgram(filename, stages);
-}
-
-Shader::~Shader()
-{
-	glDeleteProgram(program_id_);
-}
-
-void Shader::use()
-{
-	glUseProgram(program_id_);
-}
-
-GLint Shader::getUniformLocation(const GLchar *name)
-{
-	return glGetUniformLocation(program_id_, name);
-}
-
-void Shader::loadShaderProgram(const char *sourceFile, const unsigned int stages)
-{
-	//printf("loading shader program from %s, with stages %x\n", sourceFile, stages);
-	program_id_ = glCreateProgram();
-	// load each individual shader stage if it was defined
-	// you MUST have at least a vertex and fragment shader,
-	// or have ONLY a compute shader
-	if (stages & VERTEX_SHADER)	loadShader(sourceFile, GL_VERTEX_SHADER);
-	if (stages & FRAGMENT_SHADER)	loadShader(sourceFile, GL_FRAGMENT_SHADER);
-	if (stages & GEOMETRY_SHADER)	loadShader(sourceFile, GL_GEOMETRY_SHADER);
-	if (stages & TESSELLATION_SHADER) {
-		loadShader(sourceFile, GL_TESS_CONTROL_SHADER);
-		loadShader(sourceFile, GL_TESS_EVALUATION_SHADER);
-	}
-	// if(stages & COMPUTE_SHADER) loadshader(sourceFile, GL_COMPUTE_SHADER);
-	glLinkProgram(program_id_);
-}
-
 void Shader::loadShader(const char *sourceFile, const GLenum type)
 {
 	std::stringstream ss;
@@ -60,18 +22,23 @@ void Shader::loadShader(const char *sourceFile, const GLenum type)
 		switch (type)
 		{
 			case GL_VERTEX_SHADER:
+				printf("compiling vertex shader for shader %s\n", sourceFile); fflush(stdout);
 				ss << "#define _VERTEX_" << std::endl;
 				break;
 			case GL_FRAGMENT_SHADER:
+				printf("compiling fragment shader for shader %s\n", sourceFile); fflush(stdout);
 				ss << "#define _FRAGMENT_" << std::endl;
 				break;
 			case GL_GEOMETRY_SHADER:
+				printf("compiling geometry shader for shader %s\n", sourceFile); fflush(stdout);
 				ss << "#define _GEOMETRY_" << std::endl;
 				break;
 			case GL_TESS_CONTROL_SHADER:
+				printf("compiling tessellation control shader for shader %s\n", sourceFile); fflush(stdout);
 				ss << "#define _TESSCONTROL_" << std::endl;
 				break;
 			case GL_TESS_EVALUATION_SHADER:
+				printf("compiling tessellation evaluation shader for shader %s\n", sourceFile); fflush(stdout);
 				ss << "#define _TESSEVAL_" << std::endl;
 				break;
 			// case GL_COMPUTE_SHADER:
@@ -108,11 +75,90 @@ void Shader::loadShader(const char *sourceFile, const GLenum type)
 	}
 }
 
-void Shader::printShaderLog(const GLuint id)
+GLint Shader::getUniformLocation(const GLchar *name) const
+{
+	return glGetUniformLocation(program_id_, name);
+}
+
+GLuint Shader::getUniformBlockIndex(const GLchar *blockName) const
+{
+	return glGetUniformBlockIndex(program_id_, blockName);
+}
+
+/*static*/ void Shader::printShaderLog(const GLuint id)
 {
 	int infoLogLength = 0;
 	char infoLog[1024];
 	glGetShaderInfoLog(id, 1024, &infoLogLength, infoLog);
 	if (infoLogLength > 0)
 		printf("Shader log:\n%s", infoLog); fflush(stdout);
+}
+
+ShaderProgram::ShaderProgram(const char *filename, const unsigned int stages)
+{
+	loadShaderProgram(filename, stages);
+}
+
+ShaderProgram::~ShaderProgram()
+{
+	glDeleteProgram(program_id_);
+}
+
+void ShaderProgram::use() const
+{
+	glUseProgram(program_id_);
+}
+
+void ShaderProgram::loadShaderProgram(const char *sourceFile, const unsigned int stages)
+{
+	//printf("loading shader program from %s, with stages %x\n", sourceFile, stages);
+	program_id_ = glCreateProgram();
+	// load each individual shader stage if it was defined
+	// you MUST have at least a vertex and fragment shader,
+	// or have ONLY a compute shader
+	if (stages & VERTEX_SHADER)	loadShader(sourceFile, GL_VERTEX_SHADER);
+	if (stages & FRAGMENT_SHADER)	loadShader(sourceFile, GL_FRAGMENT_SHADER);
+	if (stages & GEOMETRY_SHADER)	loadShader(sourceFile, GL_GEOMETRY_SHADER);
+	if (stages & TESSELLATION_SHADER) {
+		loadShader(sourceFile, GL_TESS_CONTROL_SHADER);
+		loadShader(sourceFile, GL_TESS_EVALUATION_SHADER);
+	}
+	// if(stages & COMPUTE_SHADER) loadshader(sourceFile, GL_COMPUTE_SHADER);
+	glLinkProgram(program_id_);
+}
+
+ShaderPipeline::ShaderPipeline(const char *filename, const unsigned int stages)
+{
+	loadShaderPipeline(filename, stages);
+}
+
+ShaderPipeline::~ShaderPipeline()
+{
+	glDeleteProgramPipelines(1, &program_id_);
+}
+
+void ShaderPipeline::use() const
+{
+	glBindProgramPipeline(program_id_);
+}
+
+void ShaderPipeline::loadShaderPipeline(const char *sourceFile, const unsigned int stages)
+{
+	glGenProgramPipelines(1, &program_id_);
+	glBindProgramPipeline(program_id_);
+	if (stages & VERTEX_SHADER) {
+		loadShader(sourceFile, GL_VERTEX_SHADER);
+	}
+	if (stages & FRAGMENT_SHADER) {
+		loadShader(sourceFile, GL_FRAGMENT_SHADER);
+	}
+	if (stages & GEOMETRY_SHADER) {
+		loadShader(sourceFile, GL_GEOMETRY_SHADER);
+	}
+	if (stages & TESSELLATION_SHADER) {
+		loadShader(sourceFile, GL_TESS_CONTROL_SHADER);
+		loadShader(sourceFile, GL_TESS_EVALUATION_SHADER);
+	}
+	glLinkProgram(program_id_);
+	glBindProgramPipeline(0);
 }

@@ -1,4 +1,4 @@
-#version 430 core
+#version 420 core
 
 #ifdef _VERTEX_
 
@@ -24,7 +24,7 @@ in vec4 out_Pos;
 in vec2 out_Tex;
 out vec4 out_Color;
 
-uniform layout(location = 0) sampler2D tex;
+uniform sampler2D tex;
 
 void main() {
 	vec4 texColor = texture(tex, out_Tex);

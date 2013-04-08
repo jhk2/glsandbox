@@ -1,4 +1,4 @@
-#version 430 core
+#version 420 core
 
 uniform mat4 lightmv;
 
@@ -59,9 +59,17 @@ in vec4 light_Tex;
 in vec4 lightPos;
 out vec4 out_Color;
 
-
-uniform float Ka;
-uniform float Kd;
+uniform ObjMaterial {
+	float Ns;
+	float Ni;
+	float Tr;
+	vec3 Tf;
+	unsigned int illum;
+	vec3 Ka;
+	vec3 Kd;
+	vec3 Ks;
+	vec3 Ke;
+};
 
 uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;

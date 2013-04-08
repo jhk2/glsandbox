@@ -15,6 +15,9 @@ extern PFNGLGENBUFFERSPROC glGenBuffers;
 extern PFNGLBUFFERDATAPROC glBufferData;
 extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 
+// indexed buffer objects
+extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
+
 // vertex attributes
 extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
@@ -35,12 +38,17 @@ extern PFNGLATTACHSHADERPROC glAttachShader;
 extern PFNGLUSEPROGRAMPROC glUseProgram;
 extern PFNGLDETACHSHADERPROC glDetachShader;
 extern PFNGLDELETESHADERPROC glDeleteShader;
+// program pipeline objects
+extern PFNGLGENPROGRAMPIPELINESPROC glGenProgramPipelines;
+extern PFNGLDELETEPROGRAMPIPELINESPROC glDeleteProgramPipelines;
+extern PFNGLBINDPROGRAMPIPELINEPROC glBindProgramPipeline;
 // uniform variables
 extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLUNIFORM1UIPROC glUniform1ui;
 extern PFNGLUNIFORM1IPROC glUniform1i;
 extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLUNIFORM3FVPROC glUniform3fv;
+extern PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 // uniform matrices
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 // reading back uniforms

@@ -147,11 +147,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	window->showWindow(nShowCmd);
 	cam.setPos(fl3(0, 10, 10));
 	printf("make shader\n"); fflush(stdout);
-	Shader shader ("shader.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-	Shader texshader ("tex.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-	Shader colshader ("color.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-	Shader shadowshader("pcss.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-	Shader shadowgen("shadowgen.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+	ShaderProgram shader ("shader.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+	ShaderProgram texshader ("tex.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+	ShaderProgram colshader ("color.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+	ShaderProgram shadowshader("pcss.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+	ShaderProgram shadowgen("shadowgen.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 	//~ glBindFragDataLocation(shader.getProgramID(), 0, "out_Color");
 	// get uniform locations
 	GLint mvloc = shader.getUniformLocation("mvMatrix");
@@ -357,8 +357,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
 			mats.matrixToUniform(MatrixStack::PROJECTION);
 			lmats.initUniformLocs(shadowshader.getUniformLocation("lightmv"), shadowshader.getUniformLocation("lightpj"));
-			glUniform1f(shadowshader.getUniformLocation("Ka"), 0.2);
-			glUniform1f(shadowshader.getUniformLocation("Kd"), 0.8);
+			//~ glUniform1f(shadowshader.getUniformLocation("Ka"), 0.2);
+			//~ glUniform1f(shadowshader.getUniformLocation("Kd"), 0.8);
 			glUniform1i(shadowshader.getUniformLocation("map_Ka"), 0);
 			glUniform1i(shadowshader.getUniformLocation("map_Kd"), 0);
 			glUniform1i(shadowshader.getUniformLocation("shadow"), 3);

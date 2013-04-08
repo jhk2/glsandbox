@@ -28,33 +28,53 @@
 class Shader
 {
 	public:
-	// enumeration of individual shader types
-	enum SHADER_TYPES {
-		VERTEX_SHADER = 0x01,
-		FRAGMENT_SHADER = 0x02,
-		GEOMETRY_SHADER = 0x04,
-		TESSELLATION_SHADER = 0x08,
-		// compute omitted for now
-		// COMPUTE_SHADER = 0x10,
-	};
-	Shader(const char *filename, const unsigned int stages);
-	virtual ~Shader();
-	
-	void use();
-	GLint getUniformLocation(const GLchar* name);
-	
-	GLuint getProgramID() { return program_id_; }
-	
-	private:
-		// loads the whole shader program (by loading each of the individual shaders)
-		void loadShaderProgram(const char* sourceFile, const unsigned int stages);
+		// enumeration of individual shader stage types
+		enum SHADER_TYPES {
+			VERTEX_SHADER = 0x01,
+			FRAGMENT_SHADER = 0x02,
+			GEOMETRY_SHADER = 0x04,
+			TESSELLATION_SHADER = 0x08,
+			// compute omitted for now
+			// COMPUTE_SHADER = 0x10,
+		};
+		
+		virtual void use() const = 0;
+		GLuint getProgramID() const { return program_id_; }
+
+		GLint getUniformLocation(const GLchar *name) const;
+		GLuint getUniformBlockIndex(const GLchar *blockName) const;
+	protected:
 		// loads shader of specific type from the source file
 		void loadShader(const char *sourceFile, const GLenum type);
 		// prints the compiler log for a single shader
-		void printShaderLog(const GLuint id);
-		
-		// id handle for the whole shader program
+		static void printShaderLog(const GLuint id);
 		GLuint program_id_;
+};
+
+class ShaderProgram : public Shader
+{
+	public:		
+		ShaderProgram(const char *filename, const unsigned int stages);
+		virtual ~ShaderProgram();
+		
+		void use() const;
+	
+	private:
+		// loads the whole shader program (by loading each of the individual shaders)
+		void loadShaderProgram(const char *sourceFile, const unsigned int stages);
+		
+};
+
+// class for individual shader pipeline objects
+class ShaderPipeline : public Shader
+{
+	public:
+		ShaderPipeline(const char *filename, const unsigned int stages);
+		virtual ~ShaderPipeline();
+	
+		void use() const;
+	private:
+		void loadShaderPipeline(const char *sourceFile, const unsigned int stages);
 };
 
 #endif // SHADER_H

@@ -28,7 +28,7 @@ in vec2 out_Tex;
 in vec3 out_Norm;
 out vec4 out_Color;
 
-uniform sampler2D map_Ka;
+uniform layout(binding = 0) sampler2D map_Ka;
 
 void main() {
 	out_Color = texture(map_Ka, out_Tex);

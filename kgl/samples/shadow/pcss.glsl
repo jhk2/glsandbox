@@ -1,7 +1,7 @@
 // PCSS whitepaper at http://developer.download.nvidia.com/whitepapers/2008/PCSS_Integration.pdf
 // The PCSS code itself is just an OpenGL adapted version of the D3D code in this paper
 
-#version 430 core
+#version 420 core
 
 uniform mat4 lightmv;
 #define M_PI 3.1415926535897932384626433832795
@@ -63,9 +63,20 @@ in vec4 light_Tex;
 in vec4 lightPos;
 out vec4 out_Color;
 
+uniform ObjMaterial {
+	float Ns;
+	float Ni;
+	float Tr;
+	vec3 Tf;
+	unsigned int illum;
+	vec3 Ka;
+	vec3 Kd;
+	vec3 Ks;
+	vec3 Ke;
+};
 
-uniform float Ka;
-uniform float Kd;
+const float Ka_ = 0.2;
+const float Kd_ = 0.8;
 
 uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;
@@ -219,8 +230,13 @@ void main() {
 	vec3 lTex = light_Tex.xyz / light_Tex.w;
 	bvec2 outside = greaterThan(lTex.xy,vec2(1.0,1.0));
 	bvec2 inside = lessThan(lTex.xy,vec2(0,0));
+	
 	// for sampler2DShadow
-	float kshadow = pcss(lTex);
+	float kshadow = 0;
+	
+	if (all(not(inside)) && all(not(outside))) {
+		kshadow = pcss(lTex);
+	}
 	//float kshadow = pcf(lTex.xy, lTex.z, 0.05);
 	
 	//float smap = texture(shadowTex, lTex.xy).r;
@@ -232,10 +248,10 @@ void main() {
 	// diffuse lighting is n dot l
 	vec4 diffuseTex = texture(map_Kd, out_Tex);
 	float ndotl = max(dot(objtolight.xyz, out_Norm), 0);
-	vec3 diffuse = ndotl * Kd * kshadow * diffuseTex.xyz;
+	vec3 diffuse = ndotl * Kd_ * kshadow * diffuseTex.xyz;
 	
 	vec4 ambientTex = texture(map_Ka, out_Tex);
-	vec3 ambient = Ka * ambientTex.xyz;
+	vec3 ambient = Ka_ * ambientTex.xyz;
 	
 	out_Color = vec4(diffuse + ambient, min(1.0, diffuseTex.w + ambientTex.w));
 }

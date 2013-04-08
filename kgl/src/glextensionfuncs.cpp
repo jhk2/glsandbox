@@ -14,6 +14,9 @@ PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBUFFERDATAPROC glBufferData;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 
+// indexed buffer objects
+PFNGLBINDBUFFERBASEPROC glBindBufferBase;
+
 // vertex attributes
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
@@ -34,12 +37,17 @@ PFNGLATTACHSHADERPROC glAttachShader;
 PFNGLUSEPROGRAMPROC glUseProgram;
 PFNGLDETACHSHADERPROC glDetachShader;
 PFNGLDELETESHADERPROC glDeleteShader;
+// program pipeline objects
+PFNGLGENPROGRAMPIPELINESPROC glGenProgramPipelines;
+PFNGLDELETEPROGRAMPIPELINESPROC glDeleteProgramPipelines;
+PFNGLBINDPROGRAMPIPELINEPROC glBindProgramPipeline;
 // uniform variables
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM1UIPROC glUniform1ui;
 PFNGLUNIFORM1IPROC glUniform1i;
 PFNGLUNIFORM1FPROC glUniform1f;
 PFNGLUNIFORM3FVPROC glUniform3fv;
+PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 // matrix operations
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 // reading back uniforms
@@ -80,6 +88,9 @@ void loadGLExtensions()
 	glBufferData = (PFNGLBUFFERDATAPROC) GETPROCADDR("glBufferData");
 	glDeleteBuffers = (PFNGLDELETEBUFFERSPROC) GETPROCADDR("glDeleteBuffers");
 	
+	// indexed buffer objects
+	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC) GETPROCADDR("glBindBufferBase");
+	
 	// vertex attributes
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) GETPROCADDR("glEnableVertexAttribArray");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) GETPROCADDR("glVertexAttribPointer");
@@ -100,12 +111,17 @@ void loadGLExtensions()
 	glUseProgram = (PFNGLUSEPROGRAMPROC) GETPROCADDR("glUseProgram");
 	glDetachShader = (PFNGLDETACHSHADERPROC) GETPROCADDR("glDetachShader");
 	glDeleteShader = (PFNGLDELETESHADERPROC) GETPROCADDR("glDeleteShader");
+	// program pipeline objects
+	glGenProgramPipelines = (PFNGLGENPROGRAMPIPELINESPROC) GETPROCADDR("glGenProgramPipelines");
+	glDeleteProgramPipelines = (PFNGLDELETEPROGRAMPIPELINESPROC) GETPROCADDR("glDeleteProgramPipelines");
+	glBindProgramPipeline = (PFNGLBINDPROGRAMPIPELINEPROC) GETPROCADDR("glBindProgramPipeline");
 	// uniform variables
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) GETPROCADDR("glGetUniformLocation");
 	glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glUniform1ui");
 	glUniform1i = (PFNGLUNIFORM1IPROC) GETPROCADDR("glUniform1i");
 	glUniform1f = (PFNGLUNIFORM1FPROC) GETPROCADDR("glUniform1f");
 	glUniform3fv = (PFNGLUNIFORM3FVPROC) GETPROCADDR("glUniform3fv");
+	glGetUniformBlockIndex = (PFNGLGETUNIFORMBLOCKINDEXPROC) GETPROCADDR("glGetUniformBlockIndex");
 	// matrix operations
 	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) GETPROCADDR("glUniformMatrix4fv");
 	// reading back uniforms

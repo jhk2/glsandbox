@@ -77,6 +77,9 @@ class Mesh
 			for(int i = 0; i < attribs_.size(); i++) {
 				delete attribs_[i].second;
 			}
+			glDeleteBuffers(1, &vbo_);
+			glDeleteBuffers(1, &ibo_);
+			glDeleteVertexArrays(1, &vao_);
 		};
 		
 		template<typename T> Mesh& addAttrib(GLuint location, AttributeInfoSpec<T> &spec)

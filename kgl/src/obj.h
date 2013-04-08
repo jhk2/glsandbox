@@ -35,29 +35,45 @@ class Obj
 		
 		// struct for materials
 		struct ObjMaterial {
+			virtual ~ObjMaterial() { glDeleteBuffers(1, &ubo); }
+			struct ObjUniformBlock {
+				// GLSL std140 layout compatible uniform block
+				GLfloat Ns; // specular coefficient
+				GLfloat Ni; // index of refraction
+				union {
+				GLfloat d, Tr; // transparency (can have both notations)
+				};
+				fl3 Tf; // transmission filter (allows only certain colors through)
+				GLfloat padding0;
+				
+				GLuint illum; // illumination model
+				// 0 means constant illumination (color = Kd)
+				// 1 means lambertian model (diffuse and ambient only)
+				// 2 means lambert + blinn-phong (diffuse, specular, and ambient)
+				// there's more at http://en.wikipedia.org/wiki/Wavefront_.obj_file
+				// but these are the basics
+				
+				fl3 Ka; // ambient color
+				GLfloat padding1;
+				fl3 Kd; // diffuse color
+				GLfloat padding2;
+				fl3 Ks; // specular color
+				GLfloat padding3;
+				fl3 Ke; // emissive color
+				GLfloat padding4;
+				
+				//GLint sampler_Ka;
+				//GLint sampler_Kd;
+				//GLint sampler_Ks;
+			} ublock;
+			
 			std::string name;
-			float Ns; // specular coefficient
-			float Ni; // index of refraction
-			union {
-				float d, Tr; // transparency (can have both notations)
-			};
-			fl3 Tf; // transmission filter (allows only certain colors through)
-			
-			unsigned int illum; // illumination model
-			// 0 means constant illumination (color = Kd)
-			// 1 means lambertian model (diffuse and ambient only)
-			// 2 means lambert + blinn-phong (diffuse, specular, and ambient)
-			// there's more at http://en.wikipedia.org/wiki/Wavefront_.obj_file
-			// but these are the basics
-			
-			fl3 Ka; // ambient color
-			fl3 Kd; // diffuse color
-			fl3 Ks; // specular color
-			fl3 Ke; // emissive color
 			
 			Texture *map_Ka; // ambient texture
 			Texture *map_Kd; // diffuse texture
 			Texture *map_Ks; // specular texture
+			
+			GLuint ubo; // uniform buffer handle
 		};
 		
 		// internal abstract class for handling different vertex formats
@@ -116,6 +132,7 @@ class Obj
 		
 		// map of materials by addressable name
 		std::map<std::string, ObjMaterial *> materials_;
+		// uniform buffers for these materials
 		
 		// map for storing the final meshes and associated materials
 		std::map<std::string, std::pair<ObjMesh *, ObjMaterial *>> meshes_;
