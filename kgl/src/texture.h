@@ -19,7 +19,8 @@ class Texture
 		Texture(const Texture &other);
 		Texture(const char *filename);
 		virtual ~Texture();
-		void bind();
+		void bind(GLenum target = GL_TEXTURE_2D);
+		void bindToImage(GLuint unit, GLenum access, GLenum format);
 		GLuint getID();
 	private:
 		bool init(const char *filename);

@@ -77,6 +77,9 @@ PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLTEXIMAGE3DPROC glTexImage3D;
 PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
 
+PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+PFNGLMEMORYBARRIERPROC glMemoryBarrier;
+
 // color clamping
 PFNGLCLAMPCOLORPROC glClampColor;
 
@@ -150,6 +153,9 @@ void loadGLExtensions()
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
 	glTexImage3D = (PFNGLTEXIMAGE3DPROC) GETPROCADDR("glTexImage3D");
 	glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC) GETPROCADDR("glTexImage2DMultisample");
+	
+	glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC) GETPROCADDR("glBindImageTexture");
+	glMemoryBarrier = (PFNGLMEMORYBARRIERPROC) GETPROCADDR("glMemoryBarrier");
 	
 	// color clamping
 	glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");

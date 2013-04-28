@@ -3,6 +3,7 @@
 #include "png.h"
 #include <stdio.h>
 #include "jpeglib.h"
+#include "glextensionfuncs.h"
 
 Texture::Texture() : id_(0), dims_(), original_(true)
 {
@@ -27,9 +28,14 @@ Texture::~Texture()
 	}
 }
 
-void Texture::bind()
+void Texture::bind(GLenum target)
 {
-	glBindTexture(GL_TEXTURE_2D, id_);
+	glBindTexture(target, id_);
+}
+
+void Texture::bindToImage(GLuint unit, GLenum access, GLenum format)
+{
+	glBindImageTexture(unit, id_, 0, false, 0, access, format);
 }
 
 GLuint Texture::getID()

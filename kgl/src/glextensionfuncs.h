@@ -88,6 +88,8 @@ typedef void (APIENTRYP PFNGLMEMORYBARRIERPROC) (GLbitfield barriers);
 extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 */
+extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 
 // function to load the extensions
 extern void loadGLExtensions();
