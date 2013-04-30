@@ -60,6 +60,7 @@ PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
 PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 PFNGLFRAMEBUFFERTEXTURELAYERPROC glFramebufferTextureLayer;
+PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture;
 PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
 PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 
@@ -137,6 +138,7 @@ void loadGLExtensions()
 	glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) GETPROCADDR("glDeleteFramebuffers");
 	glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) GETPROCADDR("glFramebufferTexture2D");
 	glFramebufferTextureLayer = (PFNGLFRAMEBUFFERTEXTURELAYERPROC) GETPROCADDR("glFramebufferTextureLayer");
+	glFramebufferTexture = (PFNGLFRAMEBUFFERTEXTUREPROC) GETPROCADDR("glFramebufferTexture");
 	glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC) GETPROCADDR("glBlitFramebuffer");
 	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) GETPROCADDR("glCheckFramebufferStatus");
 	

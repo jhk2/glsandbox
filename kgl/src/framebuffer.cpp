@@ -69,11 +69,7 @@ bool Framebuffer::init(bool gen)
 	bind();
 	
 	if (gen) {
-		if (params_.type == GL_TEXTURE_2D || params_.type == GL_TEXTURE_2D_MULTISAMPLE) {
-			color_ = new GLuint[params_.numMrts];
-		} else if (params_.type == GL_TEXTURE_3D) {
-			color_ = new GLuint[1];
-		}
+		color_ = new GLuint[params_.numMrts];
 	}
 	
 	if (params_.type == GL_TEXTURE_2D) {
@@ -111,15 +107,20 @@ bool Framebuffer::init(bool gen)
 	} else if (params_.type == GL_TEXTURE_3D) {
 		//~ printf("making non-msaa 3d framebuffer\n"); fflush(stdout);
 		if (gen) {
-			glGenTextures(1, &color_[0]);
+			glGenTextures(params_.numMrts, &color_[0]);
 		}
-		glBindTexture(GL_TEXTURE_3D, color_[0]);
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // must be linear or nearest
-		glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage3D(GL_TEXTURE_3D, 0, params_.format, params_.width, params_.height, params_.depth, 0, GL_RGBA, GL_FLOAT, 0);
+		for (int i = 0; i < params_.numMrts; i++) {
+			glBindTexture(GL_TEXTURE_3D, color_[i]);
+			glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // must be linear or nearest
+			glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage3D(GL_TEXTURE_3D, 0, params_.format, params_.width, params_.height, params_.depth, 0, GL_RGBA, GL_FLOAT, 0);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color_[i], 0);
+		}
+		/* binding each layer to a color attachment (old way)
 		for (int i = 0; i < params_.depth; i++) {
 			glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color_[0], 0, i);
 		}
+		*/
 	}
 	glBindTexture(params_.type, 0);
 	
@@ -139,6 +140,13 @@ bool Framebuffer::init(bool gen)
 			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, params_.numSamples, params_.depthFormat, params_.width, params_.height, false);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depth_, 0);
 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		} else if (params_.type == GL_TEXTURE_3D) {
+			glBindTexture(GL_TEXTURE_3D, depth_);
+			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+			glTexImage3D(GL_TEXTURE_3D, 0, params_.depthFormat, params_.width, params_.height, params_.depth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_, 0);
+			glBindTexture(GL_TEXTURE_3D, 0);
 		} else {
 			//~ printf("making normal z target for id %u\n", depth_); fflush(stdout);
 			glBindTexture(GL_TEXTURE_2D, depth_);
