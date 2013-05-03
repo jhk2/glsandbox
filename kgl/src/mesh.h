@@ -64,7 +64,7 @@ template<typename GL_TYPEDEF> struct AttributeInfoSpec : AttributeInfoConcept
 *	Ideally, a mesh is made of up vertices which can have any number of vertex attributes
 *	We require vertex attributes to be interleaved before being loaded, for now
 */
-template<class V, typename I> // V is a custom vertex struct, I is the type of indices (unsigned int, short, etc)
+template<typename I> // V is a custom vertex struct, I is the type of indices (unsigned int, short, etc)
 class Mesh
 {
 	public:
@@ -146,10 +146,10 @@ class Mesh
 };
 
 template<class V, typename I>
-class InterleavedMesh : public Mesh<V, I>
+class InterleavedMesh : public Mesh<I>
 {
 	public:
-		InterleavedMesh(GLenum drawType) : Mesh<V, I>(drawType) {}
+		InterleavedMesh(GLenum drawType) : Mesh<I>(drawType) {}
 		virtual ~InterleavedMesh() 
 		{
 			glDeleteBuffers(1, &vbo_);

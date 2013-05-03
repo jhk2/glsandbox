@@ -415,7 +415,7 @@ Obj::ObjMesh* Obj::createPTNMesh(FILE *file)
 	}
 	mesh->finalize();
 	// we've read all the faces, so make the mesh
-	return new PTNMesh(mesh);
+	return new ObjMesh(mesh);
 }
 
 Obj::ObjMesh* Obj::createPTMesh(FILE *file)
@@ -468,7 +468,7 @@ Obj::ObjMesh* Obj::createPTMesh(FILE *file)
 	//~ printf("read %u faces\n", read); fflush(stdout);
 	mesh->finalize();
 	// we've read all the faces, so make the mesh
-	return new PTMesh(mesh);
+	return new ObjMesh(mesh);
 }
 
 Obj::ObjMesh* Obj::createPNMesh(FILE *file)
@@ -517,7 +517,7 @@ Obj::ObjMesh* Obj::createPNMesh(FILE *file)
 	printf("read %u faces\n", faces); fflush(stdout);
 	mesh->finalize();
 	// we've read all the faces, so make the mesh
-	return new PNMesh(mesh);
+	return new ObjMesh(mesh);
 }
 
 Obj::ObjMesh* Obj::createPMesh(FILE *file)
@@ -560,5 +560,5 @@ Obj::ObjMesh* Obj::createPMesh(FILE *file)
 	}
 	mesh->finalize();
 	// we've read all the faces, so make the mesh
-	return new PMesh(mesh);
+	return new ObjMesh(mesh);
 }

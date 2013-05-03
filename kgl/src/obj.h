@@ -18,6 +18,9 @@ class MatrixStack;
 *
 *	One OBJ mesh can contain multiple Meshes, since each sub mesh can use its own texture map, etc.
 *	for the purposes of assigning vertex attributes, 0 is position, 1 is texcoord, 2 is normal
+*
+*	I originally planned to add functionality for making a separate vao/vbo with position-only data
+*	for depth-prepass, but holding off on it for now
 */
 
 class Obj
@@ -76,34 +79,12 @@ class Obj
 			GLuint ubo; // uniform buffer handle
 		};
 		
-		// internal abstract class for handling different vertex formats
+		// container for obj meshes to make them more controlled/static
 		struct ObjMesh {
-			virtual void draw() = 0;
-		};
-		struct PTNMesh : ObjMesh {
-			PTNMesh(Mesh<PTNvert, GLuint> *m) : mesh(m) {}
-			virtual ~PTNMesh() { delete mesh; }
+			ObjMesh(Mesh<GLuint> *m) : mesh(m) {};
+			virtual ~ObjMesh() { delete mesh; }
 			void draw() { mesh->draw(); }
-			Mesh<PTNvert, GLuint> *mesh;
-		};
-		struct PTMesh : ObjMesh {
-			PTMesh(Mesh<PTvert, GLuint> *m) : mesh(m) {}
-			virtual ~PTMesh() { delete mesh; }
-			void draw() { mesh->draw(); }
-			Mesh<PTvert, GLuint> *mesh;
-		};
-		struct PNMesh : ObjMesh {
-			PNMesh(Mesh<PNvert, GLuint> *m) : mesh(m) {}
-			virtual ~PNMesh() { delete mesh; }
-			void draw() { mesh->draw(); }
-			private:
-			Mesh<PNvert, GLuint> *mesh;
-		};
-		struct PMesh : ObjMesh {
-			PMesh(Mesh<fl3, GLuint> *m) : mesh(m) {}
-			virtual ~PMesh() { delete mesh; }
-			void draw() { mesh->draw(); };
-			Mesh<fl3, GLuint> *mesh;
+			Mesh<GLuint> *mesh;
 		};
 		
 		bool loadFile(const char *filename);
