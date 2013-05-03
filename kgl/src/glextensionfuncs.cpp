@@ -20,6 +20,10 @@ PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 // vertex attributes
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLVERTEXATTRIBFORMATPROC glVertexAttribFormat;
+PFNGLVERTEXATTRIBBINDINGPROC glVertexAttribBinding;
+PFNGLBINDVERTEXBUFFERPROC glBindVertexBuffer;
+
 // vertex array objects
 PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
@@ -84,6 +88,9 @@ PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 // color clamping
 PFNGLCLAMPCOLORPROC glClampColor;
 
+// debugging with ARB_DEBUG_OUTPUT
+PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
+
 void loadGLExtensions()
 {	
 	// vertex buffers
@@ -98,6 +105,10 @@ void loadGLExtensions()
 	// vertex attributes
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) GETPROCADDR("glEnableVertexAttribArray");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) GETPROCADDR("glVertexAttribPointer");
+	glVertexAttribFormat = (PFNGLVERTEXATTRIBFORMATPROC) GETPROCADDR("glVertexAttribFormat");
+	glVertexAttribBinding = (PFNGLVERTEXATTRIBBINDINGPROC) GETPROCADDR("glVertexAttribBinding");
+	glBindVertexBuffer = (PFNGLBINDVERTEXBUFFERPROC) GETPROCADDR("glBindVertexBuffer");
+	
 	// vertex array objects
 	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC) GETPROCADDR("glGenVertexArrays");
 	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC) GETPROCADDR("glBindVertexArray");
@@ -161,4 +172,7 @@ void loadGLExtensions()
 	
 	// color clamping
 	glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");
+	
+	// debugging with ARB_DEBUG_OUTPUT
+	glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC) GETPROCADDR("glDebugMessageCallbackARB");
 }

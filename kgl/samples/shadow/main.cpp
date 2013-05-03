@@ -119,7 +119,7 @@ struct SpotLight {
 	float near_;
 	float far_;
 	// we'll substitute vertex colors for Tex and make it vertex attribute 3
-	Mesh<PTvert, GLubyte> mesh_;
+	InterleavedMesh<PTvert, GLubyte> mesh_;
 };
 
 long OnResize(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
@@ -145,6 +145,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	window = new WinGLBase(hInstance, 1024, 768);
 	window->addMessageHandler(WM_SIZE, OnResize);
 	window->showWindow(nShowCmd);
+	
+	glDebugMessageCallbackARB(errorCallback, NULL);
+	glEnable(GL_DEBUG_OUTPUT);
+	
 	cam.setPos(fl3(0, 10, 10));
 	printf("make shader\n"); fflush(stdout);
 	ShaderProgram shader ("shader.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
@@ -196,8 +200,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	inds.push_back(0x0); inds.push_back(0x1); inds.push_back(0x2); inds.push_back(0x3);
 	printf("make mesh from quad data\n"); fflush(stdout);
 	
-	Mesh<PTvert, GLubyte> quad (GL_QUADS);
-	quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3)).addVerts(verts).addInds(inds).finalize();
+	InterleavedMesh<PTvert, GLubyte> quad (GL_QUADS);
+	quad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3));
+	quad.addVerts(verts).addInds(inds).finalize();
 	
 	// make a quad for the ground
 	std::vector<PTNvert> gverts;
@@ -208,8 +213,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	gv.pos_ = fl3(50, 0, 50); gv.tex_ = fl3(1, 1, 0); gverts.push_back(gv);
 	gv.pos_ = fl3(50, 0, -50); gv.tex_ = fl3(0, 1, 0); gverts.push_back(gv);
 	
-	Mesh<PTNvert, GLubyte> gquad (GL_QUADS);
-	gquad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3)).addAttrib(2, AttributeInfoSpec<GLfloat>(3)).addVerts(gverts).addInds(inds).finalize();
+	InterleavedMesh<PTNvert, GLubyte> gquad (GL_QUADS);
+	gquad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3)).addAttrib(2, AttributeInfoSpec<GLfloat>(3));
+	gquad.addVerts(gverts).addInds(inds).finalize();
 	
 	Obj testobj ("../assets/ServerBot1.obj");
 	fl3 objmin, objmax;

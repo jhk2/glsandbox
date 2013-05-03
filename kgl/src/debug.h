@@ -5,6 +5,7 @@
 #include <windows.h>
 #endif
 #include <gl/gl.h>
+#include <stdio.h>
 
 // some debugging stuff
 static void checkGLError(const char *function)
@@ -18,4 +19,10 @@ static void checkGLError(const char *function)
 		default: printf("other error\n"); fflush(stdout); break;
 	}
 };
+
+static void APIENTRY errorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *message, void *userParam)
+{
+	printf("GL Debug Error: %s\n", message); fflush(stdout);
+}
+
 #endif // DEBUG_H

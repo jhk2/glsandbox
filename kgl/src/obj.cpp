@@ -370,7 +370,7 @@ Obj::ObjMesh* Obj::createPTNMesh(FILE *file)
 {
 	//~ printf("creating ptn mesh\n"); fflush(stdout);
 	unsigned int read = 0;
-	Mesh<PTNvert, GLuint> *mesh = new Mesh<PTNvert, GLuint>(GL_TRIANGLES);
+	InterleavedMesh<PTNvert, GLuint> *mesh = new InterleavedMesh<PTNvert, GLuint>(GL_TRIANGLES);
 	currentcombo_ = 0;
 	combos_.clear();
 	// 3 vertex attributes with 3 floats each
@@ -423,7 +423,7 @@ Obj::ObjMesh* Obj::createPTMesh(FILE *file)
 	unsigned int read = 0;
 	currentcombo_ = 0;
 	combos_.clear();
-	Mesh<PTvert, GLuint> *mesh = new Mesh<PTvert, GLuint>(GL_TRIANGLES);
+	InterleavedMesh<PTvert, GLuint> *mesh = new InterleavedMesh<PTvert, GLuint>(GL_TRIANGLES);
 	// 2 vertex attributes with 3 floats each
 	mesh->addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3));
 	fpos_t lastpos;
@@ -476,7 +476,7 @@ Obj::ObjMesh* Obj::createPNMesh(FILE *file)
 	currentcombo_ = 0;
 	combos_.clear();
 	printf("creating pn mesh\n"); fflush(stdout);
-	Mesh<PNvert, GLuint> *mesh = new Mesh<PNvert, GLuint>(GL_TRIANGLES);
+	InterleavedMesh<PNvert, GLuint> *mesh = new InterleavedMesh<PNvert, GLuint>(GL_TRIANGLES);
 	// 2 vertex attributes with 3 floats each
 	mesh->addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(2, AttributeInfoSpec<GLfloat>(3));
 	fpos_t lastpos;
@@ -524,7 +524,7 @@ Obj::ObjMesh* Obj::createPMesh(FILE *file)
 {
 	currentcombo_ = 0;
 	combos_.clear();
-	Mesh<fl3, GLuint> *mesh = new Mesh<fl3, GLuint>(GL_TRIANGLES);
+	InterleavedMesh<fl3, GLuint> *mesh = new InterleavedMesh<fl3, GLuint>(GL_TRIANGLES);
 	// 2 vertex attributes with 3 floats each
 	mesh->addAttrib(0, AttributeInfoSpec<GLfloat>(3));
 	fpos_t lastpos;

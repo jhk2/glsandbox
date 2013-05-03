@@ -21,6 +21,10 @@ extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 // vertex attributes
 extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+extern PFNGLVERTEXATTRIBFORMATPROC glVertexAttribFormat;
+extern PFNGLVERTEXATTRIBBINDINGPROC glVertexAttribBinding;
+extern PFNGLBINDVERTEXBUFFERPROC glBindVertexBuffer;
+
 // vertex array objects
 extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
@@ -91,6 +95,9 @@ extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 */
 extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
+
+// debugging with ARB_DEBUG_OUTPUT
+extern PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
 
 // function to load the extensions
 extern void loadGLExtensions();
