@@ -14,6 +14,6 @@ struct Sampler
 		GLuint getID() { return id_; }
 	private:
 		GLuint id_;
-}
+};
 
 #endif // SAMPLER_H

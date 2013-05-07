@@ -68,6 +68,7 @@ extern PFNGLFRAMEBUFFERTEXTURELAYERPROC glFramebufferTextureLayer;
 extern PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture;
 extern PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
 extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+extern PFNGLFRAMEBUFFERPARAMETERIPROC glFramebufferParameteri;
 
 // renderbuffer stuff, currently unusued
 /*
@@ -82,6 +83,11 @@ extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLTEXIMAGE3DPROC glTexImage3D;
 extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+// samplers
+extern PFNGLGENSAMPLERSPROC glGenSamplers;
+extern PFNGLDELETESAMPLERSPROC glDeleteSamplers;
+extern PFNGLBINDSAMPLERPROC glBindSampler;
+extern PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
 
 // color clamping
 extern PFNGLCLAMPCOLORPROC glClampColor;

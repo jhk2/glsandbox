@@ -67,6 +67,7 @@ PFNGLFRAMEBUFFERTEXTURELAYERPROC glFramebufferTextureLayer;
 PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture;
 PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
 PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+PFNGLFRAMEBUFFERPARAMETERIPROC glFramebufferParameteri;
 
 // renderbuffer stuff, currently unusued
 /*
@@ -81,6 +82,11 @@ PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLTEXIMAGE3DPROC glTexImage3D;
 PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+// samplers
+PFNGLGENSAMPLERSPROC glGenSamplers;
+PFNGLDELETESAMPLERSPROC glDeleteSamplers;
+PFNGLBINDSAMPLERPROC glBindSampler;
+PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
 
 PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 PFNGLMEMORYBARRIERPROC glMemoryBarrier;
@@ -152,6 +158,7 @@ void loadGLExtensions()
 	glFramebufferTexture = (PFNGLFRAMEBUFFERTEXTUREPROC) GETPROCADDR("glFramebufferTexture");
 	glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC) GETPROCADDR("glBlitFramebuffer");
 	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) GETPROCADDR("glCheckFramebufferStatus");
+	glFramebufferParameteri = (PFNGLFRAMEBUFFERPARAMETERIPROC) GETPROCADDR("glFramebufferParameteri");
 	
 	// renderbuffers (unused)
 	/*
@@ -166,6 +173,11 @@ void loadGLExtensions()
 	glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
 	glTexImage3D = (PFNGLTEXIMAGE3DPROC) GETPROCADDR("glTexImage3D");
 	glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC) GETPROCADDR("glTexImage2DMultisample");
+	// samplers
+	glGenSamplers = (PFNGLGENSAMPLERSPROC) GETPROCADDR("glGenSamplers");
+	glDeleteSamplers = (PFNGLDELETESAMPLERSPROC) GETPROCADDR("glDeleteSamplers");
+	glBindSampler = (PFNGLBINDSAMPLERPROC) GETPROCADDR("glBindSampler");
+	glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC) GETPROCADDR("glSamplerParameteri");
 	
 	glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC) GETPROCADDR("glBindImageTexture");
 	glMemoryBarrier = (PFNGLMEMORYBARRIERPROC) GETPROCADDR("glMemoryBarrier");

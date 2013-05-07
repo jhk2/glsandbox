@@ -11,10 +11,8 @@ Framebuffer::Framebuffer(FramebufferParams &params)
 
 Framebuffer::~Framebuffer()
 {
-	if (params_.type == GL_TEXTURE_2D || params_.type == GL_TEXTURE_2D_MULTISAMPLE) {
+	if (params_.colorEnable) {
 		glDeleteTextures(params_.numMrts, &color_[0]);
-	} else {
-		glDeleteTextures(1, &color_[0]);
 	}
 	if (params_.depthEnable) {
 		glDeleteTextures(1, &depth_);
@@ -68,61 +66,66 @@ bool Framebuffer::init(bool gen)
 	
 	bind();
 	
-	if (gen) {
-		color_ = new GLuint[params_.numMrts];
-	}
+	glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, params_.width);
+	glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, params_.height);
 	
-	if (params_.type == GL_TEXTURE_2D) {
-		//~ printf("making non-msaa 2d framebuffer\n"); fflush(stdout);
+	if (params_.colorEnable) {
 		if (gen) {
-			glGenTextures(params_.numMrts, &color_[0]);
+			color_ = new GLuint[params_.numMrts];
 		}
-		for (int i = 0; i < params_.numMrts; i++) {
-			//~ printf("making non msaa color target for id %u\n", color_[i]); fflush(stdout);
-			glBindTexture(GL_TEXTURE_2D, color_[i]);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params_.filter);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params_.filter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexImage2D(GL_TEXTURE_2D, 0, params_.format, params_.width, params_.height, 0, GL_RGBA, GL_FLOAT, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_[i], 0);
+		
+		if (params_.type == GL_TEXTURE_2D) {
+			//~ printf("making non-msaa 2d framebuffer\n"); fflush(stdout);
+			if (gen) {
+				glGenTextures(params_.numMrts, &color_[0]);
+			}
+			for (int i = 0; i < params_.numMrts; i++) {
+				//~ printf("making non msaa color target for id %u\n", color_[i]); fflush(stdout);
+				glBindTexture(GL_TEXTURE_2D, color_[i]);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params_.filter);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params_.filter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+				glTexImage2D(GL_TEXTURE_2D, 0, params_.format, params_.width, params_.height, 0, GL_RGBA, GL_FLOAT, 0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color_[i], 0);
+			}
+		} else if (params_.type == GL_TEXTURE_2D_MULTISAMPLE) {
+			GLint maxSamples = 0;
+			glGetIntegerv(GL_MAX_SAMPLES_EXT, &maxSamples);
+			params_.numSamples = min(params_.numSamples, static_cast<GLuint>(maxSamples));
+			if (gen) {
+				glGenTextures(params_.numMrts, &color_[0]);
+			}
+			for (int i = 0; i < params_.numMrts; i++) {
+				//~ printf("making msaa color target for id %u\n", color_[i]); fflush(stdout);
+				glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color_[i]);
+				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, params_.numSamples, params_.format , params_.width, params_.height, false);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_[i], 0);
+			}
+		} else if (params_.type == GL_TEXTURE_3D) {
+			//~ printf("making non-msaa 3d framebuffer\n"); fflush(stdout);
+			if (gen) {
+				glGenTextures(params_.numMrts, &color_[0]);
+			}
+			for (int i = 0; i < params_.numMrts; i++) {
+				glBindTexture(GL_TEXTURE_3D, color_[i]);
+				glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // must be linear or nearest
+				glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexImage3D(GL_TEXTURE_3D, 0, params_.format, params_.width, params_.height, params_.depth, 0, GL_RGBA, GL_FLOAT, 0);
+				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color_[i], 0);
+			}
+			/* binding each layer to a color attachment (old way)
+			for (int i = 0; i < params_.depth; i++) {
+				glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color_[0], 0, i);
+			}
+			*/
 		}
-	} else if (params_.type == GL_TEXTURE_2D_MULTISAMPLE) {
-		GLint maxSamples = 0;
-		glGetIntegerv(GL_MAX_SAMPLES_EXT, &maxSamples);
-		params_.numSamples = min(params_.numSamples, static_cast<GLuint>(maxSamples));
-		if (gen) {
-			glGenTextures(params_.numMrts, &color_[0]);
-		}
-		for (int i = 0; i < params_.numMrts; i++) {
-			//~ printf("making msaa color target for id %u\n", color_[i]); fflush(stdout);
-			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color_[i]);
-			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, params_.numSamples, params_.format , params_.width, params_.height, false);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_[i], 0);
-		}
-	} else if (params_.type == GL_TEXTURE_3D) {
-		//~ printf("making non-msaa 3d framebuffer\n"); fflush(stdout);
-		if (gen) {
-			glGenTextures(params_.numMrts, &color_[0]);
-		}
-		for (int i = 0; i < params_.numMrts; i++) {
-			glBindTexture(GL_TEXTURE_3D, color_[i]);
-			glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // must be linear or nearest
-			glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage3D(GL_TEXTURE_3D, 0, params_.format, params_.width, params_.height, params_.depth, 0, GL_RGBA, GL_FLOAT, 0);
-			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color_[i], 0);
-		}
-		/* binding each layer to a color attachment (old way)
-		for (int i = 0; i < params_.depth; i++) {
-			glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color_[0], 0, i);
-		}
-		*/
+		glBindTexture(params_.type, 0);
 	}
-	glBindTexture(params_.type, 0);
 	
 	if(params_.depthEnable) {
 		if (gen) {
@@ -153,8 +156,8 @@ bool Framebuffer::init(bool gen)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 			// glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_STENCIL_TEXTURE_MODE, GL_DEPTH_COMPONENT); // should be default
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			// comparison functions for shadow mapping
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
@@ -172,12 +175,14 @@ bool Framebuffer::init(bool gen)
 void Framebuffer::blit(Framebuffer &dest) {
 	assert(params_.numMrts == dest.params_.numMrts);
 	
-	for (int i = 0; i < params_.numMrts; i++) {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
-		glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest.id_);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
-		glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, dest.params_.width, dest.params_.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	if (params_.colorEnable && dest.params_.colorEnable) {
+		for (int i = 0; i < params_.numMrts; i++) {
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
+			glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest.id_);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+			glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, dest.params_.width, dest.params_.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		}
 	}
 	
 	if (params_.depthEnable && dest.params_.depthEnable) {
@@ -185,6 +190,7 @@ void Framebuffer::blit(Framebuffer &dest) {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest.id_);
 		glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, dest.params_.width, dest.params_.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	}
+	
 	
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -260,4 +266,15 @@ GLuint Framebuffer::getWidth()
 GLuint Framebuffer::getHeight()
 {
 	return params_.height;
+}
+
+GLuint Framebuffer::getColorID(unsigned int idx)
+{
+	assert(idx < params_.numMrts);
+	return color_[idx];
+}
+
+GLuint Framebuffer::getDepthID()
+{
+	return depth_;
 }

@@ -11,6 +11,7 @@
 #include "framebuffer.h"
 #include "utils.h"
 #include "constants.h"
+#include "sampler.h"
 
 #define MOUSE_SENSITIVITY 20.f
 #define MOVESPEED 0.05f
@@ -171,6 +172,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	params.height = window->getHeight();
 	params.numSamples = 0;
 	params.numMrts = 1;
+	params.colorEnable = true;
 	params.depthEnable = true;
 	params.format = GL_RGBA32F;
 	params.depthFormat = GL_DEPTH_COMPONENT32F;
@@ -180,7 +182,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	params.width = 1024;
 	params.height = 1024;
 	params.filter = GL_NEAREST;
+	params.colorEnable = false;
 	shadowmap = new Framebuffer(params);
+	
+	Sampler smapRender;
+	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	
 	printf("init quad data\n"); fflush(stdout);
 	// let's make a simple quad for a mesh
@@ -290,12 +300,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		light.pos_.x = 40 * (cos(M_PI * timer / 10000.f));
 		light.pos_.z = 40 * (sin(M_PI * timer / 10000.f));
 		light.pos_.y = 40 + (20 * cos(M_PI * timer / 5000.f));
-		
+
 		// start GL code
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_BLEND);
 		// draw from light's point of view
 		shadowmap->bind();
+		glDrawBuffer(GL_NONE);
 		{
 			glCullFace(GL_FRONT);
 			glViewport(0, 0, shadowmap->getWidth(), shadowmap->getHeight());
@@ -330,11 +341,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//~ mats.popMatrix(MatrixStack::MODELVIEW);
 			//~ glUseProgram(0);
 			
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			
 			//lmats.popMatrix(MatrixStack::MODELVIEW);
 			//lmats.popMatrix(MatrixStack::PROJECTION);
 		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDrawBuffer(GL_BACK);
 		
 		// draw from camera's point of view
 		{
@@ -351,10 +362,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			
 			glActiveTexture(GL_TEXTURE3);
 			shadowmap->bindDepthTexture();
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 			
 			glActiveTexture(GL_TEXTURE4);
-			shadowmap->bindColorTexture();
+			shadowmap->bindDepthTexture();
+			smapRender.bind(4);
+			//~ shadowmap->bindColorTexture();
 			
 			shadowshader.use();
 			mats.initUniformLocs(shadowshader.getUniformLocation("mvMatrix"), shadowshader.getUniformLocation("pjMatrix"));
@@ -397,13 +410,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			light.mesh_.draw();
 			mats.popMatrix(MatrixStack::MODELVIEW);
 			glUseProgram(0);
-			
+			glBindSampler(4, 0);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			
 			glDisable(GL_DEPTH_TEST);
 			glDisable(GL_BLEND);
 			glActiveTexture(GL_TEXTURE0);
 			fbuf->bindColorTexture();
+			
 			texshader.use();
 			mats.loadIdentity(MatrixStack::MODELVIEW);
 			mats.loadIdentity(MatrixStack::PROJECTION);
@@ -414,21 +428,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			quad.draw();
 			
 			// draw the shadow map
-			shadowmap->bindColorTexture();
+			shadowmap->bindDepthTexture();
+			smapRender.bind(0);
 			mats.pushMatrix(MatrixStack::MODELVIEW);
 			mats.scale(0.4 / window->getAspect(), 0.4, 1.0);
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
 			mats.matrixToUniform(MatrixStack::PROJECTION);
 			quad.draw();
-			
-			shadowmap->bindDepthTexture();
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-			mats.translate(1.0f, 0, 0);
-			mats.matrixToUniform(MatrixStack::MODELVIEW);
-			quad.draw();
 			mats.popMatrix(MatrixStack::MODELVIEW);
+			
 			glUseProgram(0);
 			glBindTexture(GL_TEXTURE_2D, 0);
+			glBindSampler(0, 0);
 		}
 	
 		// end GL code

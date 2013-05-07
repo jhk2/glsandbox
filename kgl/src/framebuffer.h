@@ -15,6 +15,7 @@ struct FramebufferParams {
 		GLuint numMrts;
 		GLuint depth;
 	};
+	bool colorEnable;
 	bool depthEnable;
 	GLenum format, depthFormat, type, filter;
 };
@@ -32,6 +33,8 @@ class Framebuffer
 		void resize(GLuint width, GLuint height);
 		GLuint getWidth();
 		GLuint getHeight();
+		GLuint getColorID(unsigned int idx);
+		GLuint getDepthID();
 	protected:
 		bool init(bool gen = true);
 		bool checkStatus(GLenum target);
