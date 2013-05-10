@@ -43,6 +43,7 @@ class Shader
 
 		GLint getUniformLocation(const GLchar *name) const;
 		GLuint getUniformBlockIndex(const GLchar *blockName) const;
+		virtual void validate() const = 0;
 	protected:
 		// loads shader of specific type from the source file
 		void loadShader(const char *sourceFile, const GLenum type);
@@ -58,7 +59,7 @@ class ShaderProgram : public Shader
 		virtual ~ShaderProgram();
 		
 		void use() const;
-	
+		void validate() const;
 	private:
 		// loads the whole shader program (by loading each of the individual shaders)
 		void loadShaderProgram(const char *sourceFile, const unsigned int stages);
@@ -73,6 +74,7 @@ class ShaderPipeline : public Shader
 		virtual ~ShaderPipeline();
 	
 		void use() const;
+		void validate() const;
 	private:
 		void loadShaderPipeline(const char *sourceFile, const unsigned int stages);
 };

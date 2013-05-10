@@ -42,6 +42,8 @@ extern PFNGLATTACHSHADERPROC glAttachShader;
 extern PFNGLUSEPROGRAMPROC glUseProgram;
 extern PFNGLDETACHSHADERPROC glDetachShader;
 extern PFNGLDELETESHADERPROC glDeleteShader;
+extern PFNGLVALIDATEPROGRAMPROC glValidateProgram;
+extern PFNGLVALIDATEPROGRAMPIPELINEPROC glValidateProgramPipeline;
 // program pipeline objects
 extern PFNGLGENPROGRAMPIPELINESPROC glGenProgramPipelines;
 extern PFNGLDELETEPROGRAMPIPELINESPROC glDeleteProgramPipelines;

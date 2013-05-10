@@ -41,6 +41,8 @@ PFNGLATTACHSHADERPROC glAttachShader;
 PFNGLUSEPROGRAMPROC glUseProgram;
 PFNGLDETACHSHADERPROC glDetachShader;
 PFNGLDELETESHADERPROC glDeleteShader;
+PFNGLVALIDATEPROGRAMPROC glValidateProgram;
+PFNGLVALIDATEPROGRAMPIPELINEPROC glValidateProgramPipeline;
 // program pipeline objects
 PFNGLGENPROGRAMPIPELINESPROC glGenProgramPipelines;
 PFNGLDELETEPROGRAMPIPELINESPROC glDeleteProgramPipelines;
@@ -132,6 +134,8 @@ void loadGLExtensions()
 	glUseProgram = (PFNGLUSEPROGRAMPROC) GETPROCADDR("glUseProgram");
 	glDetachShader = (PFNGLDETACHSHADERPROC) GETPROCADDR("glDetachShader");
 	glDeleteShader = (PFNGLDELETESHADERPROC) GETPROCADDR("glDeleteShader");
+	glValidateProgram = (PFNGLVALIDATEPROGRAMPROC) GETPROCADDR("glValidateProgram");
+	glValidateProgramPipeline = (PFNGLVALIDATEPROGRAMPIPELINEPROC) GETPROCADDR("glValidateProgramPipeline");
 	// program pipeline objects
 	glGenProgramPipelines = (PFNGLGENPROGRAMPIPELINESPROC) GETPROCADDR("glGenProgramPipelines");
 	glDeleteProgramPipelines = (PFNGLDELETEPROGRAMPIPELINESPROC) GETPROCADDR("glDeleteProgramPipelines");

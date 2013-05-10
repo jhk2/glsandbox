@@ -109,6 +109,12 @@ void ShaderProgram::use() const
 	glUseProgram(program_id_);
 }
 
+void ShaderProgram::validate() const
+{
+	glValidateProgram(program_id_);
+	printShaderLog(program_id_);
+}
+
 void ShaderProgram::loadShaderProgram(const char *sourceFile, const unsigned int stages)
 {
 	//printf("loading shader program from %s, with stages %x\n", sourceFile, stages);
@@ -140,6 +146,12 @@ ShaderPipeline::~ShaderPipeline()
 void ShaderPipeline::use() const
 {
 	glBindProgramPipeline(program_id_);
+}
+
+void ShaderPipeline::validate() const
+{
+	glValidateProgramPipeline(program_id_);
+	printShaderLog(program_id_);
 }
 
 void ShaderPipeline::loadShaderPipeline(const char *sourceFile, const unsigned int stages)
