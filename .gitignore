@@ -25,3 +25,6 @@ assets/
 # model files
 *.obj
 *.mtl
+
+# ignoring cmake stuff for now
+CMakeLists.txt

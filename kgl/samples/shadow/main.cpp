@@ -18,7 +18,7 @@
 
 MatrixStack mats;
 MatrixStack lmats;
-Camera cam;
+FirstPersonCamera cam;
 Framebuffer *fbuf;
 Framebuffer *shadowmap;
 WinGLBase *window;

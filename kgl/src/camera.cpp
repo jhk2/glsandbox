@@ -45,23 +45,6 @@ void Camera::toMatrixPj(MatrixStack &mstack)
 	mstack.perspective(fovy_, aspect_, zNear_, zFar_);
 }
 
-void Camera::toMatrixMv(MatrixStack &mstack)
-{
-	mstack.loadIdentity(MatrixStack::MODELVIEW);
-	mstack.rotate(-rot_.x, 1, 0, 0);
-	mstack.rotate(-rot_.y, 0, 1, 0);
-	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
-}
-
-Camera& Camera::move(fl3 &tomove)
-{
-	float r = tomove.z * cos(DEGTORAD(rot_.x));
-	pos_.x += r * sin(DEGTORAD(rot_.y)) + tomove.x * cos(DEGTORAD(rot_.y));
-	pos_.z += r * cos(DEGTORAD(rot_.y)) - tomove.x * sin(DEGTORAD(rot_.y));
-	pos_.y += tomove.y - tomove.z * sin(DEGTORAD(rot_.x));
-	return *this;
-}
-
 Camera& Camera::rotate(fl2 &torot)
 {
 	rot_ += torot;
@@ -85,5 +68,57 @@ Camera& Camera::setRot(fl2 &newrot)
 Camera& Camera::setPos(fl3 &newpos)
 {
 	pos_ = newpos;
+	return *this;
+}
+
+FirstPersonCamera::FirstPersonCamera() : Camera() {}
+	
+FirstPersonCamera::FirstPersonCamera(double fovy, double aspect, double zNear, double zFar) :
+	Camera(fovy, aspect, zNear, zFar) {}
+
+FirstPersonCamera::~FirstPersonCamera() {}
+
+Camera& FirstPersonCamera::move(fl3 &tomove)
+{
+	float r = tomove.z * cos(DEGTORAD(rot_.x));
+	pos_.x += r * sin(DEGTORAD(rot_.y)) + tomove.x * cos(DEGTORAD(rot_.y));
+	pos_.z += r * cos(DEGTORAD(rot_.y)) - tomove.x * sin(DEGTORAD(rot_.y));
+	pos_.y += tomove.y - tomove.z * sin(DEGTORAD(rot_.x));
+	return *this;
+}
+
+void FirstPersonCamera::toMatrixMv(MatrixStack &mstack)
+{
+	mstack.loadIdentity(MatrixStack::MODELVIEW);
+	mstack.rotate(-rot_.x, 1, 0, 0);
+	mstack.rotate(-rot_.y, 0, 1, 0);
+	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
+}
+
+ThirdPersonCamera::ThirdPersonCamera() : Camera(), distance_(0) {}
+
+ThirdPersonCamera::ThirdPersonCamera(double fovy, double aspect, double zNear, double zFar, double distance) :
+	Camera(fovy, aspect, zNear, zFar), distance_(distance) {}
+
+ThirdPersonCamera::~ThirdPersonCamera() {}
+
+Camera& ThirdPersonCamera::move(fl3 &tomove)
+{
+	pos_+=tomove;
+	return *this;
+}
+
+void ThirdPersonCamera::toMatrixMv(MatrixStack &mstack)
+{
+	mstack.loadIdentity(MatrixStack::MODELVIEW);
+	mstack.translate(0, 0, -10);
+	mstack.rotate(-rot_.x, 1, 0, 0);
+	mstack.rotate(-rot_.y, 0, 1, 0);
+	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
+}
+
+ThirdPersonCamera& ThirdPersonCamera::setDistance(double distance)
+{
+	distance_ = distance;
 	return *this;
 }
