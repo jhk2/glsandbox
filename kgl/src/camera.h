@@ -45,6 +45,8 @@ class ThirdPersonCamera : public Camera
 		ThirdPersonCamera(double fovy, double aspect, double zNear, double zFar, double distance);
 		virtual ~ThirdPersonCamera();
 		void toMatrixMv(MatrixStack &mstack);
+		// partial transformation for drawing the player avatar
+		void toMatrixMvAvatar(MatrixStack &mstack);
 		// movement in world space, not camera space, or just the point the camera is looking at
 		// it is the responsibility of the caller to figure out how the point moves
 		Camera& move(fl3 &tomove);

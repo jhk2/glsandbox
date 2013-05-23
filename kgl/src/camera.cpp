@@ -104,17 +104,28 @@ ThirdPersonCamera::~ThirdPersonCamera() {}
 
 Camera& ThirdPersonCamera::move(fl3 &tomove)
 {
-	pos_+=tomove;
+	float r = tomove.z * cos(DEGTORAD(rot_.x));
+	pos_.x += r * sin(DEGTORAD(rot_.y)) + tomove.x * cos(DEGTORAD(rot_.y));
+	pos_.z += r * cos(DEGTORAD(rot_.y)) - tomove.x * sin(DEGTORAD(rot_.y));
+	pos_.y += tomove.y;// - tomove.z * sin(DEGTORAD(rot_.x));
 	return *this;
 }
 
 void ThirdPersonCamera::toMatrixMv(MatrixStack &mstack)
 {
 	mstack.loadIdentity(MatrixStack::MODELVIEW);
-	mstack.translate(0, 0, -10);
+	mstack.translate(0, 0, -distance_);
 	mstack.rotate(-rot_.x, 1, 0, 0);
 	mstack.rotate(-rot_.y, 0, 1, 0);
 	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
+}
+
+void ThirdPersonCamera::toMatrixMvAvatar(MatrixStack &mstack)
+{
+	mstack.loadIdentity(MatrixStack::MODELVIEW);
+	mstack.translate(0, 0, -distance_);
+	mstack.rotate(-rot_.x, 1, 0, 0);
+	//~ mstack.rotate(-rot_.y, 0, 1, 0);
 }
 
 ThirdPersonCamera& ThirdPersonCamera::setDistance(double distance)

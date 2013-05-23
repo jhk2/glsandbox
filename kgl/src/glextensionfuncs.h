@@ -104,6 +104,9 @@ extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 
+// tessellation
+extern PFNGLPATCHPARAMETERIPROC glPatchParameteri;
+
 // debugging with ARB_DEBUG_OUTPUT
 extern PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
 

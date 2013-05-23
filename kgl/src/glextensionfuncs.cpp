@@ -93,6 +93,9 @@ PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
 PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 
+// tessellation
+PFNGLPATCHPARAMETERIPROC glPatchParameteri;
+
 // color clamping
 PFNGLCLAMPCOLORPROC glClampColor;
 
@@ -183,8 +186,12 @@ void loadGLExtensions()
 	glBindSampler = (PFNGLBINDSAMPLERPROC) GETPROCADDR("glBindSampler");
 	glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC) GETPROCADDR("glSamplerParameteri");
 	
+	// image units
 	glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC) GETPROCADDR("glBindImageTexture");
 	glMemoryBarrier = (PFNGLMEMORYBARRIERPROC) GETPROCADDR("glMemoryBarrier");
+	
+	// tessellation
+	glPatchParameteri = (PFNGLPATCHPARAMETERIPROC) GETPROCADDR("glPatchParameteri");
 	
 	// color clamping
 	glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");
