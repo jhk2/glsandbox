@@ -48,10 +48,7 @@ void WinGLBase::swapBuffers()
 void WinGLBase::update()
 {
 	handleMessages();
-	// calculate timestep
-	long double newmillis = currentMillis();
-	dt_ = newmillis - current_millis_;
-	current_millis_ = newmillis;
+	updatedt();
 	
 	// calculate mouse motion
 	POINT pt;
@@ -69,6 +66,41 @@ void WinGLBase::update()
 		ClientToScreen(hwnd_, &pt);
 		SetCursorPos(pt.x, pt.y);
 		mouse_pos_ = hold_pos_;
+	}
+}
+
+long double WinGLBase::currentMillis()
+{
+	LARGE_INTEGER freq; // ticks of performance counter per second (2862568 on my machine)
+	BOOL use_qpc = QueryPerformanceFrequency(&freq);
+	
+	if (use_qpc) {
+		LARGE_INTEGER ticks;
+		QueryPerformanceCounter(&ticks);
+		current_ticks_ = ticks.QuadPart;
+		return (1000.0L * current_ticks_) / freq.QuadPart;
+	} else {
+		return static_cast<long double>(GetTickCount());
+	}
+}
+
+void WinGLBase::updatedt()
+{
+	LARGE_INTEGER freq; // ticks of performance counter per second (2862568 on my machine)
+	BOOL use_qpc = QueryPerformanceFrequency(&freq);
+	
+	if (use_qpc) {
+		LARGE_INTEGER ticks;
+		QueryPerformanceCounter(&ticks);
+		unsigned long long newticks = ticks.QuadPart;
+		unsigned long long dticks = newticks - current_ticks_;
+		current_ticks_ = newticks;
+		dt_ = (1000.0L * dticks) / freq.QuadPart; // ticks / (ticks/sec) = seconds * 1000 = milliseconds
+		current_millis_ = (1000.L * current_ticks_) / freq.QuadPart;
+	} else {
+		long double newt = static_cast<long double>(GetTickCount());
+		dt_ = newt - current_millis_;
+		current_millis_ = newt;
 	}
 }
 
@@ -445,6 +477,15 @@ bool WinGLBase::initContext()
 	}
 	//*/
 	
+	// set vsync (off)
+	PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	if(!wglSwapIntervalEXT)
+	{
+		throwError("wglSwapIntervalEXT undefined\n");
+		return false;
+	}
+	wglSwapIntervalEXT(0);
+	
 	hwnd_ = hwnd;
 	hdc_ = hdc;
 	current_millis_ = currentMillis();
@@ -478,19 +519,6 @@ void WinGLBase::showWindow(int nCmdShow)
 bool WinGLBase::initFunctions()
 {
 	return false;
-}
-
-long double WinGLBase::currentMillis()
-{
-	LARGE_INTEGER freq;
-	BOOL use_qpc = QueryPerformanceFrequency(&freq);
-	if (use_qpc) {
-		LARGE_INTEGER now;
-		QueryPerformanceCounter(&now);
-		return (1000.0L * now.QuadPart) / freq.QuadPart;
-	} else {
-		return static_cast<long double>(GetTickCount());
-	}
 }
 
 float WinGLBase::getdtBetweenUpdates()

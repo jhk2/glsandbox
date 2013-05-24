@@ -4,25 +4,44 @@
 #include <stdio.h>
 #include "jpeglib.h"
 #include "glextensionfuncs.h"
+#include <assert.h>
 
-Texture::Texture() : id_(0), dims_(), original_(true)
-{
-	glGenTextures(1, &id_);
-}
+// reference counter for resource management
+static std::map<GLuint, unsigned short> RefCount;
 
-Texture::Texture(const Texture &other) : id_(other.id_), dims_(other.dims_), original_(false) {}
-
-Texture::Texture(const char *filename) : id_(0), dims_(), original_(true)
+Texture::Texture(const char *filename, bool mipmap) : id_(0), dims_()
 {
 	//~ printf("loading texture image from %s\n", filename); fflush(stdout);
-	if(init(filename)) {
+	if (init(filename)) {
 		printf("successfully loaded texture %s\n", filename); fflush(stdout);
+		assert(RefCount.count(id_) == 0);
+		RefCount[id_] = 1;
+		assert(RefCount[id_] == 1);
+		assert(RefCount.count(id_) == 1);
+		if (mipmap) {
+			glBindTexture(GL_TEXTURE_2D, id_);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	} else {
+		assert(0);
 	}
 }
 
+Texture::Texture(const Texture &other) : id_(other.id_), dims_(other.dims_)
+{
+	assert(RefCount.count(id_) == 1);
+	RefCount[id_]++;
+}
+
+
 Texture::~Texture()
 {
-	if (original_) {
+	assert(RefCount.count(id_) == 1);
+	assert(RefCount[id_] > 0);
+	if (--RefCount[id_] == 0) {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDeleteTextures(1, &id_);
 	}
@@ -33,9 +52,9 @@ void Texture::bind(GLenum target)
 	glBindTexture(target, id_);
 }
 
-void Texture::bindToImage(GLuint unit, GLenum access, GLenum format)
+void Texture::bindToImage(GLuint unit, GLenum access, GLenum format, GLuint level)
 {
-	glBindImageTexture(unit, id_, 0, false, 0, access, format);
+	glBindImageTexture(unit, id_, level, false, 0, access, format);
 }
 
 GLuint Texture::getID()
@@ -167,7 +186,7 @@ bool Texture::loadJpg(const char *filename)
 	delete[] data;
 	delete[] row_pointer;
 	fclose(file);
-	return false;
+	return true;
 }
 
 void Texture::sendGL(const GLvoid *data)

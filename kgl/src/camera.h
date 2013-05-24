@@ -20,6 +20,7 @@ class Camera
 		// setting position, rotation
 		Camera& setRot(fl2 &newrot);
 		Camera& setPos(fl3 &newpos);
+		fl3 getPos() { return pos_; }
 	protected:
 		fl2 rot_; // around x and y axes (pitch and yaw) by degrees (no roll)
 		fl3 pos_;

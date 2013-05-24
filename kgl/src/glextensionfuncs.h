@@ -85,6 +85,7 @@ extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLTEXIMAGE3DPROC glTexImage3D;
 extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 // samplers
 extern PFNGLGENSAMPLERSPROC glGenSamplers;
 extern PFNGLDELETESAMPLERSPROC glDeleteSamplers;

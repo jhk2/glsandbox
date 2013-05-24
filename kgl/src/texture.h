@@ -5,6 +5,7 @@
 #endif
 #include <gl/gl.h>
 #include "utils.h"
+#include <map>
 
 /*
 *	Class for representing textures
@@ -15,12 +16,11 @@
 class Texture
 {
 	public:
-		Texture();
+		Texture(const char *filename, bool mipmap = false);	
 		Texture(const Texture &other);
-		Texture(const char *filename);
 		virtual ~Texture();
 		void bind(GLenum target = GL_TEXTURE_2D);
-		void bindToImage(GLuint unit, GLenum access, GLenum format);
+		void bindToImage(GLuint unit, GLenum access, GLenum format, GLuint level = 0);
 		GLuint getID();
 	private:
 		bool init(const char *filename);
@@ -30,6 +30,5 @@ class Texture
 
 		GLuint id_;
 		int2 dims_;
-		bool original_;
 };
 #endif // TEXTURE_H

@@ -89,6 +89,8 @@ class WinGLBase : public GLBase
 		static long OnMouseUpM(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam);
 		static long OnMouseDownR(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam);
 		static long OnMouseUpR(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam);
+		
+		void updatedt();
 	
 		// mouse and keyboard related stuff
 		unsigned int frontKeyBuffer_;
@@ -100,6 +102,7 @@ class WinGLBase : public GLBase
 		bool holdcursor_;
 		
 		long double current_millis_;
+		unsigned long long current_ticks_;
 		long double dt_;
 		
 };

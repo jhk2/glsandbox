@@ -101,8 +101,8 @@ bool Framebuffer::init(bool gen)
 				glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color_[i]);
 				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, params_.numSamples, params_.format , params_.width, params_.height, false);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, color_[i], 0);
 			}
@@ -138,8 +138,9 @@ bool Framebuffer::init(bool gen)
 			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+			// this was throwing GL debug errors, so maybe take care of it in a sampler, or when we are doing shadow mapping?
+			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			//~ glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, params_.numSamples, params_.depthFormat, params_.width, params_.height, false);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depth_, 0);
 			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
@@ -169,10 +170,12 @@ bool Framebuffer::init(bool gen)
 	bool check = checkStatus(GL_FRAMEBUFFER);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	return check;
 }
 
-void Framebuffer::blit(Framebuffer &dest) {
+void Framebuffer::blit(Framebuffer &dest)
+{
 	assert(params_.numMrts == dest.params_.numMrts);
 	
 	if (params_.colorEnable && dest.params_.colorEnable) {
@@ -191,6 +194,25 @@ void Framebuffer::blit(Framebuffer &dest) {
 		glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, dest.params_.width, dest.params_.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	}
 	
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::blit()
+{
+	if (params_.colorEnable) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, params_.width, params_.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+	
+	if (params_.depthEnable) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, params_.width, params_.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	}
 	
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
