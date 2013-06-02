@@ -26,6 +26,7 @@ Texture::Texture(const char *filename, bool mipmap) : id_(0), dims_()
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	} else {
+        printf("failed to load texture %s\n", filename); fflush(stdout);
 		assert(0);
 	}
 }

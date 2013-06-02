@@ -26,5 +26,6 @@ assets/
 *.obj
 *.mtl
 
-# ignoring cmake stuff for now
-CMakeLists.txt
+# cmake user stuff
+kgl-build/
+CMakeLists.txt.user

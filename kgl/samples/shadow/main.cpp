@@ -33,7 +33,7 @@ struct SpotLight {
 	{
 		mstack.perspective(fovy_, aspect_, near_, far_);
 		mstack.lookAt(pos_.x, pos_.y, pos_.z, 0, 0, 0, 0, 1, 0);
-	};
+    }
 	// for transforming the frustum to be drawn on screen to visualize the light
 	void multDrawMatrix(MatrixStack &mstack)
 	{

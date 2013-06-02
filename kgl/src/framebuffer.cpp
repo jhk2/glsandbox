@@ -79,7 +79,7 @@ bool Framebuffer::init(bool gen)
 			if (gen) {
 				glGenTextures(params_.numMrts, &color_[0]);
 			}
-			for (int i = 0; i < params_.numMrts; i++) {
+            for (unsigned int i = 0; i < params_.numMrts; i++) {
 				//~ printf("making non msaa color target for id %u\n", color_[i]); fflush(stdout);
 				glBindTexture(GL_TEXTURE_2D, color_[i]);
 				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params_.filter);

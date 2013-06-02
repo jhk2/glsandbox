@@ -1,0 +1,13 @@
+set(KGL_SOURCES camera.cpp framebuffer.cpp glextensionfuncs.cpp matrixstack.cpp obj.cpp shader.cpp texture.cpp winglbase.cpp)
+add_library(kgl STATIC ${KGL_SOURCES})
+set_target_properties(kgl PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
+set_target_properties(kgl PROPERTIES OUTPUT_NAME libkgl)
+
+include_directories("${CMAKE_SOURCE_DIR}/src/include")
+add_library(jpeg STATIC IMPORTED)
+set_property(TARGET jpeg PROPERTY IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/src/lib/libjpeg.lib")
+add_library(png STATIC IMPORTED)
+set_property(TARGET png PROPERTY IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/src/lib/libpng15.lib")
+add_library(zlib STATIC IMPORTED)
+set_property(TARGET zlib PROPERTY IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/src/lib/zlib.lib")
+target_link_libraries(kgl jpeg png zlib)
