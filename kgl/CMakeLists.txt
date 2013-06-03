@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-project(kgl)
-set(CMAKE_CXX_FLAGS "-Wall")
+project(kgl_all)
+#set(CMAKE_CXX_FLAGS "-Wall")
 message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 add_subdirectory(src)
 add_subdirectory(samples)

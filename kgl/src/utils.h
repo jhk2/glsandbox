@@ -12,10 +12,10 @@ struct fl3 {
 		};
 		float xyz[3];
 	};
-	fl3() : x(0), y(0), z(0) {};
-	fl3(const fl3 &other) : x(other.x), y(other.y), z(other.z) {};
-	fl3(const float nx, const float ny, const float nz) : x(nx), y(ny), z(nz) {};
-	bool fl3::isZero()
+    fl3() : x(0), y(0), z(0) {}
+    fl3(const fl3 &other) : x(other.x), y(other.y), z(other.z) {}
+    fl3(const float nx, const float ny, const float nz) : x(nx), y(ny), z(nz) {}
+    bool fl3::isZero() const
 	{
 		return x==0 && y==0 && z==0;
 	}
@@ -28,23 +28,23 @@ struct fl3 {
 		y /= magnitude;
 		z /= magnitude;
 	}
-	bool fl3::operator==(const fl3 &other)
+    bool fl3::operator==(const fl3 &other) const
 	{
 		return x==other.x && y==other.y && z==other.z;
 	}
-	fl3 fl3::operator-()
+    fl3 fl3::operator-() const
 	{
 		return fl3(-x,-y,-z);
 	}
-	fl3 fl3::operator*(const float &scalar)
+    fl3 fl3::operator*(const float &scalar) const
 	{
 		return fl3(x*scalar, y*scalar, z*scalar);
 	}
-	fl3 fl3::operator+(const fl3 &other)
+    fl3 fl3::operator+(const fl3 &other) const
 	{
 		return fl3(x+other.x, y+other.y, z+other.z);
 	}
-	fl3 fl3::operator-(const fl3 &other)
+    fl3 fl3::operator-(const fl3 &other) const
 	{
 		return fl3(x-other.x, y-other.y, z-other.z);
 	}
@@ -122,9 +122,9 @@ struct int3 {
 		};
 		int xyz[3];
 	};
-	int3() : x(0), y(0), z(0) {};
-	int3(const int3 &other) : x(other.x), y(other.y), z(other.z) {};
-	int3(const float nx, const float ny, const float nz) : x(nx), y(ny), z(nz) {};
+    int3() : x(0), y(0), z(0) {}
+    int3(const int3 &other) : x(other.x), y(other.y), z(other.z) {}
+    int3(const int nx, const int ny, const int nz) : x(nx), y(ny), z(nz) {}
 	int3 int3::operator+(const int3 &other)
 	{
 		return int3(x+other.x, y+other.y, z+other.z);
