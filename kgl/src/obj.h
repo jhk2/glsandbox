@@ -29,7 +29,7 @@ class Obj
 		Obj(const char *filename);
 		virtual ~Obj();
 	
-		void draw(Shader &shader);
+        void draw(const Shader &shader) const;
 		void getBounds(fl3 &min, fl3 &max);
 		
 	private:

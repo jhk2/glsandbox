@@ -1,5 +1,6 @@
+set(EXTRAS constants.h debug.h glbase.h mesh.h sampler.h utils.h)
 set(KGL_SOURCES camera.cpp framebuffer.cpp glextensionfuncs.cpp matrix.cpp matrixstack.cpp obj.cpp shader.cpp texture.cpp winglbase.cpp)
-add_library(kgl STATIC ${KGL_SOURCES})
+add_library(kgl STATIC ${KGL_SOURCES} ${EXTRAS})
 set_target_properties(kgl PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 set_target_properties(kgl PROPERTIES OUTPUT_NAME libkgl)
 
@@ -14,4 +15,11 @@ add_library(png STATIC IMPORTED)
 set_property(TARGET png PROPERTY IMPORTED_LOCATION ${PNG_LOCATION})
 add_library(zlib STATIC IMPORTED)
 set_property(TARGET zlib PROPERTY IMPORTED_LOCATION ${ZLIB_LOCATION})
-target_link_libraries(kgl jpeg png zlib)
+set(KGL_LIBS jpeg png zlib)
+
+find_package(OpenGL REQUIRED)
+if (OPENGL_FOUND)
+    set(KGL_LIBS ${KGL_LIBS} ${OPENGL_LIBRARIES})
+endif (OPENGL_FOUND)
+
+target_link_libraries(kgl ${KGL_LIBS})

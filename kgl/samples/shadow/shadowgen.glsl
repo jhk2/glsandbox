@@ -15,9 +15,10 @@ void main()
 
 #ifdef _FRAGMENT_
 
-out vec4 out_Color;
+//out vec4 out_Color;
+//#define ESM_K 30
 
 void main() {
-	out_Color = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+        //out_Color = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
 }
 #endif

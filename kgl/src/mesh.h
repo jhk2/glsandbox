@@ -74,7 +74,7 @@ class Mesh
 
 		virtual ~Mesh() 
 		{
-			for(int i = 0; i < attribs_.size(); i++) {
+            for(unsigned int i = 0; i < attribs_.size(); i++) {
 				delete attribs_[i].second;
 			}
 			glDeleteBuffers(1, &ibo_);

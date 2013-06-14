@@ -51,14 +51,14 @@ MatrixStack::loadIdentity(MatrixTypes aType)
 
 // glMultMatrix implementation
 void
-MatrixStack::multMatrix(MatrixTypes aType, float *aMatrix)
+MatrixStack::multMatrix(MatrixTypes aType, const float *aMatrix)
 {
     mMatrix[aType].multMatrix(aMatrix);
 }
 
 // glLoadMatrix implementation
 void
-MatrixStack::loadMatrix(MatrixTypes aType, float *aMatrix)
+MatrixStack::loadMatrix(MatrixTypes aType, const float *aMatrix)
 {
     mMatrix[aType].loadMatrix(aMatrix);
 }

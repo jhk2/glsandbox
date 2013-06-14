@@ -1,0 +1,33 @@
+#version 430 core
+
+#ifdef _VERTEX_
+uniform layout(location = 0) mat4 mvMatrix;
+uniform layout(location = 1) mat4 pjMatrix;
+
+in layout(location = 0) vec3 in_Pos;
+in layout(location = 1) vec3 in_Tex;
+
+out vec2 out_Tex;
+
+void main()
+{
+    out_Tex = in_Tex.st;
+    gl_Position = pjMatrix * mvMatrix * vec4(in_Pos, 1.0);
+}
+
+#endif
+
+#ifdef _FRAGMENT_
+
+uniform layout(binding = 0) sampler2D depthMap;
+
+in vec2 out_Tex;
+
+out vec4 out_Color;
+
+void main()
+{
+    out_Color = vec4(texture(depthMap, out_Tex).rgb, 1.0);
+}
+
+#endif

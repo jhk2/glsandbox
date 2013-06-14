@@ -27,7 +27,7 @@ out vec4 out_Color;
 uniform sampler2D tex;
 
 void main() {
-	vec4 texColor = texture(tex, out_Tex);
+        vec4 texColor = texture(tex, out_Tex);
 	out_Color = texColor;
 	//out_Color = vec4(1.0, 1.0, 1.0, 2.0) - texColor;
 }

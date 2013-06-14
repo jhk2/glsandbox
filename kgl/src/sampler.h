@@ -11,7 +11,7 @@ struct Sampler
 		Sampler() { glGenSamplers(1, &id_); }
 		virtual ~Sampler() { glDeleteSamplers(1, &id_); }
 		void bind(GLuint texIndex) { glBindSampler(texIndex, id_); }
-		GLuint getID() { return id_; }
+        GLuint getID() { return id_; }
 	private:
 		GLuint id_;
 };

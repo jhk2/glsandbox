@@ -155,7 +155,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ShaderProgram shader ("shader.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 	ShaderProgram texshader ("tex.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 	ShaderProgram colshader ("color.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-	ShaderProgram shadowshader("pcss.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram shadowshader("pcss.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+//    ShaderProgram shadowshader("esm.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 	ShaderProgram shadowgen("shadowgen.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 	//~ glBindFragDataLocation(shader.getProgramID(), 0, "out_Color");
 	// get uniform locations
@@ -182,13 +183,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	params.width = 1024;
 	params.height = 1024;
 	params.filter = GL_NEAREST;
-	params.colorEnable = false;
+    params.colorEnable = false;
 	shadowmap = new Framebuffer(params);
 	
 	Sampler smapRender;
 	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
-	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glSamplerParameteri(smapRender.getID(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glSamplerParameteri(smapRender.getID(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glSamplerParameteri(smapRender.getID(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	
@@ -245,9 +246,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	glCullFace(GL_BACK);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0,0,0,0);
-	//~ glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
-	//~ glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-	//~ glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+
+//    glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
+//    glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
+//    glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
 	
 	float timer = 0.0f;
 	
@@ -306,12 +308,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		glEnable(GL_BLEND);
 		// draw from light's point of view
 		shadowmap->bind();
-		glDrawBuffer(GL_NONE);
+        glDrawBuffer(GL_NONE);
 		{
 			glCullFace(GL_FRONT);
 			glViewport(0, 0, shadowmap->getWidth(), shadowmap->getHeight());
 			// clear to the far plane value
-			glClearColor(1.f, 1.f, 1.f, 1.f);
+            //glClearColor(1.f, 1.f, 1.f, 1.f);
+            //glClearColor(0, 0, 0, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glEnable(GL_DEPTH_TEST);
 			lmats.pushMatrix(MatrixStack::MODELVIEW);
@@ -323,12 +326,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			
 			shadowgen.use();
 			lmats.initUniformLocs(shadowgen.getUniformLocation("mvMatrix"), shadowgen.getUniformLocation("pjMatrix"));
-			//~ lmats.pushMatrix(MatrixStack::MODELVIEW);
-			//~ lmats.scale(100, 1.0, 100);
+            //~ lmats.pushMatrix(MatrixStack::MODELVIEW);
 			lmats.matrixToUniform(MatrixStack::MODELVIEW);
 			lmats.matrixToUniform(MatrixStack::PROJECTION);
 			gquad.draw();
-			//~ lmats.popMatrix(MatrixStack::MODELVIEW);
+            //~ lmats.popMatrix(MatrixStack::MODELVIEW);
 			testobj.draw(shadowgen);
 			
 			//~ colshader.use();
@@ -345,7 +347,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//lmats.popMatrix(MatrixStack::PROJECTION);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDrawBuffer(GL_BACK);
+        glDrawBuffer(GL_BACK);
 		
 		// draw from camera's point of view
 		{
@@ -356,7 +358,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glEnable(GL_DEPTH_TEST);
 			cam.toMatrixAll(mats);
-			
+
 			glActiveTexture(GL_TEXTURE0);
 			tex.bind();
 			
@@ -365,14 +367,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 			
 			glActiveTexture(GL_TEXTURE4);
-			shadowmap->bindDepthTexture();
+            shadowmap->bindDepthTexture();
 			smapRender.bind(4);
+//            glGenerateMipmap(GL_TEXTURE_2D);
+
 			//~ shadowmap->bindColorTexture();
 			
 			shadowshader.use();
 			mats.initUniformLocs(shadowshader.getUniformLocation("mvMatrix"), shadowshader.getUniformLocation("pjMatrix"));
 			//~ mats.pushMatrix(MatrixStack::MODELVIEW);
-			//~ mats.scale(100, 1.0, 100);
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
 			mats.matrixToUniform(MatrixStack::PROJECTION);
 			lmats.initUniformLocs(shadowshader.getUniformLocation("lightmv"), shadowshader.getUniformLocation("lightpj"));
@@ -386,12 +389,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			//~ glUniform1f(shadowshader.getUniformLocation("lightNearPlane"), light.near_);
 			//~ glUniform1f(shadowshader.getUniformLocation("lightFarPlane"), light.far_);
 			
-			//~ lmats.pushMatrix(MatrixStack::MODELVIEW);
-			//~ lmats.scale(100, 1.0, 100);
+            //~ lmats.pushMatrix(MatrixStack::MODELVIEW);
 			lmats.matrixToUniform(MatrixStack::MODELVIEW);
 			lmats.matrixToUniform(MatrixStack::PROJECTION);
 			gquad.draw();
-			//~ lmats.popMatrix(MatrixStack::MODELVIEW);
+            //~ lmats.popMatrix(MatrixStack::MODELVIEW);
 			//~ mats.popMatrix(MatrixStack::MODELVIEW);
 			
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
@@ -428,10 +430,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			quad.draw();
 			
 			// draw the shadow map
-			shadowmap->bindDepthTexture();
+            shadowmap->bindDepthTexture();
 			smapRender.bind(0);
 			mats.pushMatrix(MatrixStack::MODELVIEW);
-			mats.scale(0.4 / window->getAspect(), 0.4, 1.0);
+            mats.scale(0.4f / window->getAspect(), 0.4, 1.0);
 			mats.matrixToUniform(MatrixStack::MODELVIEW);
 			mats.matrixToUniform(MatrixStack::PROJECTION);
 			quad.draw();

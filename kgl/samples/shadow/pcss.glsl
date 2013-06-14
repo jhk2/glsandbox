@@ -40,7 +40,6 @@ void main()
 	
 	// position in light space
 	light_Tex = biasMatrix * lightpj * lightmv * vec4(in_Pos, 1);
-	
 	// position of light in camera space
 	lightPos = mvMatrix * vec4(light_Pos, 1);
 	
@@ -53,8 +52,6 @@ void main()
 #endif
 
 #ifdef _FRAGMENT_
-
-const float depthBias = 0.5;
 
 in vec4 out_Pos;
 in vec2 out_Tex;
@@ -227,7 +224,8 @@ float pcss(vec3 texCoord) {
 }
 
 void main() {
-	vec3 lTex = light_Tex.xyz / light_Tex.w;
+        vec3 lTex = light_Tex.xyz / light_Tex.w;
+
 	bvec2 outside = greaterThan(lTex.xy,vec2(1.0,1.0));
 	bvec2 inside = lessThan(lTex.xy,vec2(0,0));
 	

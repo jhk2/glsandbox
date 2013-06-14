@@ -22,12 +22,12 @@ Obj::~Obj()
 	}
 }
 
-void Obj::draw(Shader &shader)
+void Obj::draw(const Shader &shader) const
 {
 	// assume that if more than one shader stage needs the uniforms they will be bound to the same pipeline object
 	//~ printf("drawing obj\n"); fflush(stdout);
 	// go through all of the sub meshes in the map
-	for (std::map<std::string, std::pair<ObjMesh *, ObjMaterial *>>::iterator iter = meshes_.begin(); iter != meshes_.end(); iter++) {
+    for (std::map<std::string, std::pair<ObjMesh *, ObjMaterial *>>::const_iterator iter = meshes_.begin(); iter != meshes_.end(); iter++) {
 		//~ printf("drawing submesh %s\n", iter->first.c_str()); fflush(stdout);
 		//~ printf("get material\n"); fflush(stdout);
 		ObjMaterial &curmat = *(iter->second.second);

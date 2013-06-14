@@ -47,11 +47,11 @@ class MatrixStack {
 		void rotate(float angle, float x, float y, float z);
 
 		// multiplying an arbitrary matrix into MODELVIEW or PROJECTION
-		void multMatrix(MatrixTypes aType, float *aMatrix);
+        void multMatrix(MatrixTypes aType, const float *aMatrix);
 
 		// Loading specific matrices
 		void loadIdentity(MatrixTypes aType);
-		void loadMatrix(MatrixTypes aType, float *aMatrix);
+        void loadMatrix(MatrixTypes aType, const float *aMatrix);
 
 		// push and pop functionality. There is a stack for each
 		// matrix type

@@ -6,6 +6,7 @@
 #endif
 #include <gl/gl.h>
 #include <stdio.h>
+#include <map>
 
 // some debugging stuff
 static void checkGLError(const char *function)
@@ -18,7 +19,7 @@ static void checkGLError(const char *function)
 		case GL_INVALID_OPERATION: printf("invalid operation error at function$s\n", function); fflush(stdout); break;
 		default: printf("other error\n"); fflush(stdout); break;
 	}
-};
+}
 
 static void APIENTRY errorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char *message, void *userParam)
 {
