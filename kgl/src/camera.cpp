@@ -25,13 +25,13 @@ void Camera::init(double fovy, double aspect, double zNear, double zFar)
 	zFar_ = zFar;
 }
 
-void Camera::toMatrixAll(MatrixStack &mstack)
+void Camera::toMatrixAll(MatrixStack &mstack) const
 {
 	toMatrixPj(mstack);
 	toMatrixMv(mstack);
 }
 
-void Camera::toMatrixPj(MatrixStack &mstack)
+void Camera::toMatrixPj(MatrixStack &mstack) const
 {
 	/*
 	double xmin, xmax, ymin, ymax;
@@ -43,6 +43,11 @@ void Camera::toMatrixPj(MatrixStack &mstack)
 	mstack.frustum(xmin, xmax, ymin, ymax, zNear_, zFar_);
 	*/
 	mstack.perspective(fovy_, aspect_, zNear_, zFar_);
+}
+
+void Camera::toMatrixPj(Matrix &matrix) const
+{
+    matrix.perspective(fovy_, aspect_, zNear_, zFar_);
 }
 
 Camera& Camera::rotate(fl2 &torot)
@@ -87,12 +92,20 @@ Camera& FirstPersonCamera::move(fl3 &tomove)
 	return *this;
 }
 
-void FirstPersonCamera::toMatrixMv(MatrixStack &mstack)
+void FirstPersonCamera::toMatrixMv(MatrixStack &mstack) const
 {
 	mstack.loadIdentity(MatrixStack::MODELVIEW);
 	mstack.rotate(-rot_.x, 1, 0, 0);
 	mstack.rotate(-rot_.y, 0, 1, 0);
 	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
+}
+
+void FirstPersonCamera::toMatrixMv(Matrix &matrix) const
+{
+    matrix.loadIdentity();
+    matrix.rotate(-rot_.x, 1, 0, 0);
+    matrix.rotate(-rot_.y, 0, 1, 0);
+    matrix.translate(-pos_.x, -pos_.y, -pos_.z);
 }
 
 ThirdPersonCamera::ThirdPersonCamera() : Camera(), distance_(0) {}
@@ -111,7 +124,7 @@ Camera& ThirdPersonCamera::move(fl3 &tomove)
 	return *this;
 }
 
-void ThirdPersonCamera::toMatrixMv(MatrixStack &mstack)
+void ThirdPersonCamera::toMatrixMv(MatrixStack &mstack) const
 {
 	mstack.loadIdentity(MatrixStack::MODELVIEW);
 	mstack.translate(0, 0, -distance_);
@@ -120,12 +133,28 @@ void ThirdPersonCamera::toMatrixMv(MatrixStack &mstack)
 	mstack.translate(-pos_.x, -pos_.y, -pos_.z);
 }
 
-void ThirdPersonCamera::toMatrixMvAvatar(MatrixStack &mstack)
+void ThirdPersonCamera::toMatrixMv(Matrix &matrix) const
+{
+    matrix.loadIdentity();
+    matrix.translate(0, 0, -distance_);
+    matrix.rotate(-rot_.x, 1, 0, 0);
+    matrix.rotate(-rot_.y, 0, 1, 0);
+    matrix.translate(-pos_.x, -pos_.y, -pos_.z);
+}
+
+void ThirdPersonCamera::toMatrixMvAvatar(MatrixStack &mstack) const
 {
 	mstack.loadIdentity(MatrixStack::MODELVIEW);
 	mstack.translate(0, 0, -distance_);
 	mstack.rotate(-rot_.x, 1, 0, 0);
 	//~ mstack.rotate(-rot_.y, 0, 1, 0);
+}
+
+void ThirdPersonCamera::toMatrixMvAvatar(Matrix &matrix) const
+{
+    matrix.loadIdentity();
+    matrix.translate(0, 0, -distance_);
+    matrix.rotate(-rot_.x, 1, 0, 0);
 }
 
 ThirdPersonCamera& ThirdPersonCamera::setDistance(double distance)

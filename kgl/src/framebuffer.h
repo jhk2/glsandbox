@@ -4,6 +4,7 @@
 #include <windows.h>
 #endif
 #include <gl/gl.h>
+#include "utils.h"
 
 // initialization parameters
 struct FramebufferParams {
@@ -32,6 +33,11 @@ class Framebuffer
 		void blit(Framebuffer &dest);
 		void blit(); // blits to default framebuffer
 		void resize(GLuint width, GLuint height);
+
+        // dump contents to output
+        void dumpColor(int2 start, int2 size, GLenum format, GLenum type) const;
+        void dumpDepth(int2 start, int2 size, GLenum format, GLenum type) const;
+
 		GLuint getWidth();
 		GLuint getHeight();
 		GLuint getColorID(unsigned int idx);

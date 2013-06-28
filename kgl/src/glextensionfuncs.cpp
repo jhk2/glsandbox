@@ -70,6 +70,7 @@ PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture;
 PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
 PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 PFNGLFRAMEBUFFERPARAMETERIPROC glFramebufferParameteri;
+PFNGLDRAWBUFFERSPROC glDrawBuffers;
 
 // renderbuffer stuff, currently unusued
 /*
@@ -167,7 +168,8 @@ void loadGLExtensions()
 	glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC) GETPROCADDR("glBlitFramebuffer");
 	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) GETPROCADDR("glCheckFramebufferStatus");
 	glFramebufferParameteri = (PFNGLFRAMEBUFFERPARAMETERIPROC) GETPROCADDR("glFramebufferParameteri");
-	
+    glDrawBuffers = (PFNGLDRAWBUFFERSPROC) GETPROCADDR("glDrawBuffers");
+
 	// renderbuffers (unused)
 	/*
 	glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) GETPROCADDR("glGenRenderbuffers");

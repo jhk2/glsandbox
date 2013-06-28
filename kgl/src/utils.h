@@ -19,9 +19,18 @@ struct fl3 {
 	{
 		return x==0 && y==0 && z==0;
 	}
+    float fl3::lengthSq() const
+    {
+        return (x*x + y*y + z*z);
+    }
+    float fl3::length() const
+    {
+        return sqrt(lengthSq());
+    }
+
 	void fl3::normalize() 
 	{
-		float magnitude = sqrt(x*x + y*y + z*z);
+        const float magnitude = length();
 		if (magnitude == 0) 
 			return;
 		x /= magnitude;
@@ -80,9 +89,17 @@ struct fl2 {
 		float xy[2];
 		float st[2];
 	};
-	fl2() : x(0), y(0) {};
-	fl2(const fl2 &other) : x(other.x), y(other.y) {};
-	fl2(const float nx, const float ny) : x(nx), y(ny) {};
+    fl2() : x(0), y(0) {}
+    fl2(const fl2 &other) : x(other.x), y(other.y) {}
+    fl2(const float nx, const float ny) : x(nx), y(ny) {}
+    float fl2::lengthSq() const
+    {
+        return (x*x + y*y);
+    }
+    float fl2::length() const
+    {
+        return sqrt(lengthSq());
+    }
 	fl2 fl2::operator+(const fl2 &other)
 	{
 		return fl2(x+other.x, y+other.y);

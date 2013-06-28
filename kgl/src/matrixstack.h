@@ -30,6 +30,8 @@ class MatrixStack {
 		// destructor
 		virtual ~MatrixStack();
 
+        void copy(MatrixTypes type, Matrix &dest) const;
+
 		// passing data of uniform locations, or buffer and offsets,
 		// to  OpenGL
 		void initUniformLocs(GLuint modelviewLoc, GLuint projLoc);

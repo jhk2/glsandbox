@@ -35,7 +35,7 @@ float filter(vec2 pos)
 {
     float total = 0.0f;
     for (uint i = 0; i < 9; i++) {
-        float val = textureOffset(tex, pos, offset[i]).r;
+        float val = textureOffset(tex, pos, offset[i]).z; // just filter the z
         total += val;
     }
     total /= 9.0f;

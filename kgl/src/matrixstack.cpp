@@ -15,6 +15,10 @@ MatrixStack::~MatrixStack()
 {
 }
 
+void MatrixStack::copy(MatrixTypes type, Matrix &dest) const
+{
+    dest.loadMatrix(mMatrix[type].data());
+}
 
 // send the uniform locations to MatrixStack
 void

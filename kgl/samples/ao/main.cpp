@@ -15,6 +15,7 @@
 #define MOVESPEED 0.05f
 
 MatrixStack mats;
+Matrix eyePj;
 FirstPersonCamera cam;
 Framebuffer *fbuf; // final nonmsaa framebuffer
 Framebuffer *msbuf; // msaa framebuffer for depth prepass
@@ -31,6 +32,30 @@ long OnResize(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
     cam.init(45, wnd.getAspect(), 1.f, 500.f);
     glViewport(0, 0, wnd.getWidth(), wnd.getHeight());
     return 0;
+}
+
+float genRand()
+{
+    return (rand() % 2 == 0 ? 1.0f : -1.0f) * ((float) rand() / RAND_MAX);
+}
+
+void genSamples()
+{
+    for (unsigned int i = 0; i < 16;) {
+        /*
+        // sampling disc generation code (rejection sampling)
+        const fl2 vec = fl2(genRand(), genRand());
+        if (vec.lengthSq() <= 1.0f) {
+            printf("vec2(%f, %f), \n", vec.x, vec.y);
+            i++;
+        }
+        */
+        const fl3 vec = fl3(genRand(), genRand(), genRand());
+        if (vec.lengthSq() <= 1.0f) {
+            printf("vec3(%f, %f, %f), \n", vec.x, vec.y, vec.z);
+            i++;
+        }
+    }
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -70,8 +95,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     params.format = GL_R32F;
     filterbuf = new Framebuffer(params);
 
-    params.colorEnable = false;
+    params.colorEnable = true;
     params.depthEnable = true;
+    params.format = GL_RGB32F; // view space position and normals
+    params.numMrts = 2;
     params.depthFormat = GL_DEPTH_COMPONENT32F;
     params.filter = GL_NEAREST;
     aobuf = new Framebuffer(params);
@@ -108,8 +135,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     glSamplerParameteri(depthSampler.getID(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glSamplerParameteri(depthSampler.getID(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glFrontFace(GL_CCW);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -158,14 +185,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         cam.move(tomove);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_BLEND);
 
-
-        glDrawBuffer(GL_NONE);
         {
             aobuf->bind();
-            // depth pre-pass
-            glClear(GL_DEPTH_BUFFER_BIT);
+            // depth + normal pre-pass
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);
             prepass.use();
             cam.toMatrixAll(mats);
@@ -174,37 +198,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             gquad.draw();
             testobj.draw(prepass);
 
-            filterbuf->bind();
-            glClear(GL_COLOR_BUFFER_BIT);
-            glDisable(GL_DEPTH_TEST);
-            filter.use();
+//            filterbuf->bind();
+//            glClear(GL_COLOR_BUFFER_BIT);
+//            glDisable(GL_DEPTH_TEST);
+//            filter.use();
 
-            glActiveTexture(GL_TEXTURE0);
-            aobuf->bindDepthTexture();
-            depthSampler.bind(0);
+//            glActiveTexture(GL_TEXTURE0);
+//            aobuf->bindColorTexture(0);
 
+            mats.copy(MatrixStack::PROJECTION, eyePj);
             mats.loadIdentity(MatrixStack::MODELVIEW);
             mats.ortho(0, 1, 0, 1);
-            mats.matrixToUniform(MatrixStack::MODELVIEW);
-            mats.matrixToUniform(MatrixStack::PROJECTION);
-            quad.draw();
+//            mats.matrixToUniform(MatrixStack::MODELVIEW);
+//            mats.matrixToUniform(MatrixStack::PROJECTION);
+//            quad.draw();
         }
+        glBindSampler(0, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDrawBuffer(GL_BACK);
         {
             glCullFace(GL_BACK);
             msbuf->bind();
             glClear(GL_COLOR_BUFFER_BIT);
             glActiveTexture(GL_TEXTURE0);
-            filterbuf->bindColorTexture();
+//            filterbuf->bindColorTexture();
+            aobuf->bindColorTexture(0); // positions
+            glActiveTexture(GL_TEXTURE1);
+            aobuf->bindColorTexture(1); // normals
 
             ssao.use();
 
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);
+            glUniformMatrix4fv(2, 1, false, eyePj.data()); // bind to uniform loc 2
 
             quad.draw();
 
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         msbuf->blit(*fbuf);
