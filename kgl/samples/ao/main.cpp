@@ -73,6 +73,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     ShaderProgram render ("render.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram ssao ("ssao.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram fast ("fastssao.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram prepass ("prepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram filter ("filter.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 
@@ -221,18 +222,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glClear(GL_COLOR_BUFFER_BIT);
             glActiveTexture(GL_TEXTURE0);
 //            filterbuf->bindColorTexture();
+            // use positions for deferred approach
             aobuf->bindColorTexture(0); // positions
             glActiveTexture(GL_TEXTURE1);
             aobuf->bindColorTexture(1); // normals
+            glActiveTexture(GL_TEXTURE2);
+            // use depth buffer for other approach
+            aobuf->bindDepthTexture();
+            depthSampler.bind(2);
 
-            ssao.use();
+            //ssao.use();
+            fast.use();
 
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);
             glUniformMatrix4fv(2, 1, false, eyePj.data()); // bind to uniform loc 2
 
             quad.draw();
-
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, 0);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
