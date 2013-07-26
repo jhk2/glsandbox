@@ -1,4 +1,4 @@
-set(EXTRAS render.glsl ssao.glsl prepass.glsl filter.glsl fastssao.glsl)
+set(EXTRAS render.glsl ssao.glsl prepass.glsl filter.glsl fastssao.glsl hbao.glsl)
 add_executable(ao WIN32 main.cpp ${EXTRAS})
 set_target_properties(ao PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
 set_target_properties(ao PROPERTIES OUTPUT_NAME ao)

@@ -74,6 +74,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShaderProgram render ("render.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram ssao ("ssao.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram fast ("fastssao.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram hbao ("hbao.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram prepass ("prepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram filter ("filter.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 
@@ -231,8 +232,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             aobuf->bindDepthTexture();
             depthSampler.bind(2);
 
-            //ssao.use();
-            fast.use();
+            ssao.use();
 
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);

@@ -75,7 +75,8 @@ void main()
     //out_Color = vec4(abs(defPos - viewPos.xyz), 1.0);
     //return;
     // bizarrely, there is huge difference in values near x=0 and y=0 where no geometry was originally drawn
-
+    // I think it is because near x = 0 and y = 0, small floating point values start affecting accuracy of results
+    // but why is it only in the unrendered parts?  whatever?!
     vec3 viewNorm = texture(normalMap, out_Tex).xyz;
     float total = 0.0;
     for (uint i = 0; i < NUM_TAPS; i++) {
