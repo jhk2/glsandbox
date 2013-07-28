@@ -34,12 +34,15 @@ in vec2 out_Tex;
 
 out vec4 out_Color;
 
-#define SAMPLING_RADIUS 0.02
-#define NUM_SAMPLING_DIRECTIONS 4
-#define SAMPLING_STEP 0.005
+// sampling radius is in view space
+#define SAMPLING_RADIUS 0.5
+#define NUM_SAMPLING_DIRECTIONS 8
+// sampling step is in texture space
+#define SAMPLING_STEP 0.004
 #define NUM_SAMPLING_STEPS 4
 #define THRESHOLD 0.1
 #define SCALE 1.0
+#define TANGENT_BIAS 0.2
 
 float filter(float x)
 {
@@ -66,11 +69,12 @@ void main()
         vec2 sampleDir = vec2(cos(sampling_angle), sin(sampling_angle));
         // we will now march along sampleDir and calculate the horizon
         // horizon starts with the tangent plane to the surface, whose angle we can get from the normal
-        float tangentAngle = acos(dot(vec3(sampleDir, 0), viewNorm)) - (0.5 * M_PI);
+        float tangentAngle = acos(dot(vec3(sampleDir, 0), viewNorm)) - (0.5 * M_PI) + TANGENT_BIAS;
         float horizonAngle = tangentAngle;
+        vec3 lastDiff = vec3(0);
         for (uint j = 0; j < NUM_SAMPLING_STEPS; j++) {
             // march along the sampling direction and see what the horizon is
-            vec2 sampleOffset = float(j) * SAMPLING_STEP * sampleDir;
+            vec2 sampleOffset = float(j+1) * SAMPLING_STEP * sampleDir;
             vec2 offTex = out_Tex + sampleOffset;
 
             float off_start_Z = texture(depthMap, offTex.st).r;
@@ -80,15 +84,19 @@ void main()
             vec3 off_viewPos = off_unproject.xyz / off_unproject.w;
             // we now have the view space position of the offset point
             vec3 diff = off_viewPos.xyz - viewPos.xyz;
-            if (length(diff) > SAMPLING_RADIUS) {
+            if (length(diff) < SAMPLING_RADIUS) {
                 // skip samples which are outside of our local sampling radius
-                continue;
+                lastDiff = diff;
+                float elevationAngle = atan(diff.z / length(diff.xy));
+                horizonAngle = max(horizonAngle, elevationAngle);
             }
-            float elevationAngle = atan(-diff.z / length(diff.xy));
-            horizonAngle = max(horizonAngle, elevationAngle);
         }
+        // the paper uses this attenuation but I like the other way better
+        //float normDiff = length(lastDiff) / SAMPLING_RADIUS;
+        //float attenuation = 1 - normDiff*normDiff;
+        float attenuation = 1.0 / (1 + length(lastDiff));
         // now compare horizon angle to tangent angle to get ambient occlusion
-        float occlusion = clamp(sin(horizonAngle) - sin(tangentAngle), 0.0, 1.0);
+        float occlusion = clamp(attenuation * (sin(horizonAngle) - sin(tangentAngle)), 0.0, 1.0);
         total += 1.0 - occlusion;
     }
     total /= NUM_SAMPLING_DIRECTIONS;

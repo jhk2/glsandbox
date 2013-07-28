@@ -232,7 +232,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             aobuf->bindDepthTexture();
             depthSampler.bind(2);
 
-            ssao.use();
+            hbao.use();
 
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);
