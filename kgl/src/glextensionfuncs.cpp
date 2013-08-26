@@ -98,6 +98,9 @@ PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 // tessellation
 PFNGLPATCHPARAMETERIPROC glPatchParameteri;
 
+// compute shader
+PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
+
 // color clamping
 PFNGLCLAMPCOLORPROC glClampColor;
 
@@ -196,6 +199,9 @@ void loadGLExtensions()
 	
 	// tessellation
 	glPatchParameteri = (PFNGLPATCHPARAMETERIPROC) GETPROCADDR("glPatchParameteri");
+
+    // compute shader
+    glDispatchCompute = (PFNGLDISPATCHCOMPUTEPROC) GETPROCADDR("glDispatchCompute");
 	
 	// color clamping
 	glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");

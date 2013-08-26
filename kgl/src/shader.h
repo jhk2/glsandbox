@@ -34,8 +34,7 @@ class Shader
 			FRAGMENT_SHADER = 0x02,
 			GEOMETRY_SHADER = 0x04,
 			TESSELLATION_SHADER = 0x08,
-			// compute omitted for now
-			// COMPUTE_SHADER = 0x10,
+            COMPUTE_SHADER = 0x10
 		};
 		
 		virtual void use() const = 0;

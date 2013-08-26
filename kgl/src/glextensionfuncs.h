@@ -109,6 +109,9 @@ extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 // tessellation
 extern PFNGLPATCHPARAMETERIPROC glPatchParameteri;
 
+// compute shader
+extern PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
+
 // debugging with ARB_DEBUG_OUTPUT
 extern PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
 

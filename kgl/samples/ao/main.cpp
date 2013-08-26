@@ -29,6 +29,15 @@ long OnResize(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
     if (fbuf) {
         fbuf->resize(wnd.getWidth(), wnd.getHeight());
     }
+    if (msbuf) {
+        msbuf->resize(wnd.getWidth(), wnd.getHeight());
+    }
+    if (aobuf) {
+        aobuf->resize(wnd.getWidth(), wnd.getHeight());
+    }
+    if (filterbuf) {
+        aobuf->resize(wnd.getWidth(), wnd.getHeight());
+    }
     cam.init(45, wnd.getAspect(), 1.f, 500.f);
     glViewport(0, 0, wnd.getWidth(), wnd.getHeight());
     return 0;
@@ -77,6 +86,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShaderProgram hbao ("hbao.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram prepass ("prepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram filter ("filter.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram blur ("blurcompute.glsl", Shader::COMPUTE_SHADER);
 
     mats.initUniformLocs(0, 1); // modelview at location 0, projection at 1
 
@@ -218,8 +228,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         glBindSampler(0, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         {
+            // calculate AO
             glCullFace(GL_BACK);
-            msbuf->bind();
+            filterbuf->bind();
             glClear(GL_COLOR_BUFFER_BIT);
             glActiveTexture(GL_TEXTURE0);
 //            filterbuf->bindColorTexture();
@@ -245,10 +256,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
+        fbuf->bind();
+        glClearColor(0, 1.0, 0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0,0,0,0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        msbuf->blit(*fbuf);
+        {
+            // blur AO
+            glBindImageTexture(0, filterbuf->getColorID(0), 0, false, 0, GL_READ_ONLY, GL_R32F);
+            glBindImageTexture(1, fbuf->getColorID(0), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+            blur.use();
+            const int2 computeSize = int2(ceil(window->getWidth() / 16.0), ceil(window->getHeight() / 16.0));
+            glDispatchCompute(computeSize.x, computeSize.y, 1);
+            glBindImageTexture(0, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(1, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //msbuf->blit(*fbuf);
         fbuf->blit();
-
+        //filterbuf->blit();
         window->finishFrame();
         Sleep(1);
     }
