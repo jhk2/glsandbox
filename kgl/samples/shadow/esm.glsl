@@ -74,16 +74,15 @@ const float Kd_ = 0.8;
 
 uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;
-uniform sampler2DShadow shadow;
 uniform sampler2D shadowTex;
 
-#define ESM_K 30
+#define ESM_C 30
 #define OVERDARK 0.5
 
 float esm(vec3 lightTex) {
     float d = lightTex.z; // position of object in light space
-    float expz = textureLod(shadowTex, lightTex.xy, 4.0).r;// exponential shadowmap value (filtered)
-    return clamp(exp(-ESM_K * (d - expz)), 0.0, 1.0);
+    float expz = texture(shadowTex, lightTex.xy).r;// exponential shadowmap value (filtered)
+    return clamp(exp(-ESM_C * d)*expz, 0.0, 1.0);
 }
 
 void main() {
