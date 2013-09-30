@@ -18,6 +18,7 @@ out vec2 out_Tex;
 out vec3 out_Norm;
 out vec4 light_Tex;
 out vec4 lightPos;
+//out float light_Distance;
 
 const mat4 biasMatrix = mat4(
         vec4(0.5,0,0,0),
@@ -35,7 +36,9 @@ void main()
     gl_Position = pjMatrix * out_Pos;
 
     // position in light space
-    light_Tex = biasMatrix * lightpj * lightmv * vec4(in_Pos, 1);
+    vec4 lightSpace_Position = lightmv * vec4(in_Pos, 1);
+    light_Tex = biasMatrix * lightpj * lightSpace_Position;
+    //light_Distance = length(lightSpace_Position.xyz);
     // position of light in camera space
     lightPos = mvMatrix * vec4(light_Pos, 1);
 
@@ -55,6 +58,7 @@ in vec2 out_Tex;
 in vec3 out_Norm;
 in vec4 light_Tex;
 in vec4 lightPos;
+//in float light_Distance;
 out vec4 out_Color;
 
 uniform ObjMaterial {
@@ -76,13 +80,19 @@ uniform sampler2D map_Ka;
 uniform sampler2D map_Kd;
 uniform sampler2D shadowTex;
 
-#define ESM_C 30
+#define ESM_C 80
 #define OVERDARK 0.5
+#define NEAR 20.0f
+#define FAR 100.f
+
+float getLinearDepth(float depth) {
+    return (2 * NEAR) / (FAR + NEAR - depth * (FAR - NEAR));
+}
 
 float esm(vec3 lightTex) {
-    float d = lightTex.z; // position of object in light space
+    float d = getLinearDepth(lightTex.z); // position of object in light space
     float expz = texture(shadowTex, lightTex.xy).r;// exponential shadowmap value (filtered)
-    return clamp(exp(-ESM_C * d)*expz, 0.0, 1.0);
+    return clamp(exp(-ESM_C*d)*expz, 0.0, 1.0);
 }
 
 void main() {
@@ -94,7 +104,7 @@ void main() {
     float kshadow = 0;
 
     if (all(not(inside)) && all(not(outside))) {
-            kshadow = esm(lTex);
+        kshadow = esm(lTex);
     }
 
     // vector from object to light

@@ -94,17 +94,18 @@ void Obj::draw(const Shader &shader) const
 			glUniform1i(map_Ks, 2);
 		}
 		*/
-		
+
 		// Bind uniform buffer with material parameters
 		GLuint blockIndex = shader.getUniformBlockIndex("ObjMaterial");
 		if (blockIndex != -1) {
 			glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, curmat.ubo);
 		}
-		
+
 		GLint map_Ka, map_Kd, map_Ks;
 		map_Ka = shader.getUniformLocation("map_Ka");
 		map_Kd = shader.getUniformLocation("map_Kd");
 		map_Ks = shader.getUniformLocation("map_Ks");
+
 		// bind textures to pre-determined locations
 		if (map_Ka != -1) {
 			glActiveTexture(GL_TEXTURE0);
@@ -121,7 +122,7 @@ void Obj::draw(const Shader &shader) const
 			glBindTexture(GL_TEXTURE_2D, curmat.map_Ks->getID());
 			glUniform1i(map_Ks, 2);
 		}
-		
+
 		//~ glActiveTexture(GL_TEXTURE0);
 		//~ glBindTexture(GL_TEXTURE_2D, curmat.map_Ka->getID());
 		//~ glActiveTexture(GL_TEXTURE1);
@@ -154,7 +155,7 @@ void Obj::getBounds(fl3 &min, fl3 &max)
 
 bool Obj::loadFile(const char *filename)
 {
-	printf("trying to load obj file %s\n", filename); fflush(stdout);
+    //printf("trying to load obj file %s\n", filename); fflush(stdout);
 	FILE *pFile = fopen(filename, "r");
 	
 	if(!pFile) {
@@ -195,7 +196,7 @@ bool Obj::loadFile(const char *filename)
 			assert(currentmat != 0);
 		} else if (strcmp(buf, "g") == 0) {
 			fscanf(pFile, "%s", buf);
-			printf("loading submesh %s\n", buf); fflush(stdout);
+            //printf("loading submesh %s\n", buf); fflush(stdout);
 			meshname = buf;
 		} else if (strcmp(buf, "v") == 0) {
 			fl3 v;
@@ -224,20 +225,20 @@ bool Obj::loadFile(const char *filename)
 			ObjMesh *currentmesh = 0;
 			if (texs_.size() == 0 && norms_.size() == 0) {
 				// we only have positions
-				printf("create new PMesh\n"); fflush(stdout);
+                //printf("create new PMesh\n"); fflush(stdout);
 				currentmesh = createPMesh(pFile);
 			} else if (texs_.size() == 0) {
 				// we have positions and normals
 				//printf("we've read %u verts and %u normals\n", verts_.size(), norms_.size()); fflush(stdout);
-				printf("create new PNMesh\n"); fflush(stdout);
+                //printf("create new PNMesh\n"); fflush(stdout);
 				currentmesh = createPNMesh(pFile);
 			} else if (norms_.size() == 0) {
 				// we have positions and texcoords
-				printf("create new PTMesh\n"); fflush(stdout);
+                //printf("create new PTMesh\n"); fflush(stdout);
 				currentmesh = createPTMesh(pFile);
 			} else {
 				// we have all 3
-				printf("create new PTNMesh\n"); fflush(stdout);
+                //printf("create new PTNMesh\n"); fflush(stdout);
 				currentmesh = createPTNMesh(pFile);
 			}
 			// put it in the map
@@ -245,7 +246,7 @@ bool Obj::loadFile(const char *filename)
 				meshname = "default";
 			}
 			if(meshes_.find(meshname) == meshes_.end()) {
-				printf("inserting new mesh with name %s\n", meshname.c_str()); fflush(stdout);
+                //printf("inserting new mesh with name %s\n", meshname.c_str()); fflush(stdout);
 				meshes_[meshname] = std::pair<ObjMesh*,ObjMaterial*>(currentmesh, currentmat);
 			} else {
 				printf("tried to insert mesh which already existed with name %s\n", meshname.c_str()); fflush(stdout);
@@ -265,7 +266,7 @@ bool Obj::loadFile(const char *filename)
 
 bool Obj::loadMaterials(const char *filename)
 {
-	printf("trying to load mtl file %s\n", filename); fflush(stdout);
+    //printf("trying to load mtl file %s\n", filename); fflush(stdout);
 	FILE *pFile = fopen(filename, "r");
 	if(!pFile) {
 		printf("couldn't open mtlfile %s\n", filename); fflush(stdout);
@@ -475,7 +476,7 @@ Obj::ObjMesh* Obj::createPNMesh(FILE *file)
 {
 	currentcombo_ = 0;
 	combos_.clear();
-	printf("creating pn mesh\n"); fflush(stdout);
+    //printf("creating pn mesh\n"); fflush(stdout);
 	InterleavedMesh<PNvert, GLuint> *mesh = new InterleavedMesh<PNvert, GLuint>(GL_TRIANGLES);
 	// 2 vertex attributes with 3 floats each
 	mesh->addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(2, AttributeInfoSpec<GLfloat>(3));
@@ -486,7 +487,7 @@ Obj::ObjMesh* Obj::createPNMesh(FILE *file)
 	while (fscanf(file, "%s", buf) > 0) {
 		if (strcmp(buf, "f") != 0) {
 			// we hit something other than "f"
-			printf("hit something other than f, ending mesh\n"); fflush(stdout);
+            //printf("hit something other than f, ending mesh\n"); fflush(stdout);
 			fsetpos(file, &lastpos);
 			break;
 		} else {
@@ -514,7 +515,7 @@ Obj::ObjMesh* Obj::createPNMesh(FILE *file)
 		}
 		fgetpos(file, &lastpos);
 	}
-	printf("read %u faces\n", faces); fflush(stdout);
+    //printf("read %u faces\n", faces); fflush(stdout);
 	mesh->finalize();
 	// we've read all the faces, so make the mesh
 	return new ObjMesh(mesh);

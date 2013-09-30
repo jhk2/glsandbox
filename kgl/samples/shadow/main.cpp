@@ -476,6 +476,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             {
                 glCullFace(GL_FRONT);
                 glViewport(0, 0, expBuffer->getWidth(), expBuffer->getHeight());
+                glClearColor(FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glEnable(GL_DEPTH_TEST);
                 lmats.pushMatrix(MatrixStack::MODELVIEW);
@@ -491,7 +492,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 lmats.matrixToUniform(MatrixStack::PROJECTION);
                 gquad.draw();
                 testobj.draw(esmgen);
-            }
+
+
+            }         
             {
                 // filter esm buffer if desired
                 expBuffer->blit(*filterBuffer);
@@ -501,7 +504,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 glCullFace(GL_BACK);
                 glViewport(0, 0, window->getWidth(), window->getHeight());
                 fbuf->bind();
-                glClearColor(FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX);
+                glClearColor(0,0,0,0);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glEnable(GL_DEPTH_TEST);
                 cam.toMatrixAll(mats);

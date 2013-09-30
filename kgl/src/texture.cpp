@@ -13,7 +13,7 @@ Texture::Texture(const char *filename, bool mipmap) : id_(0), dims_()
 {
 	//~ printf("loading texture image from %s\n", filename); fflush(stdout);
 	if (init(filename)) {
-		printf("successfully loaded texture %s\n", filename); fflush(stdout);
+        //printf("successfully loaded texture %s\n", filename); fflush(stdout);
 		assert(RefCount.count(id_) == 0);
 		RefCount[id_] = 1;
 		assert(RefCount[id_] == 1);

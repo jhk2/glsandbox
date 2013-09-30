@@ -80,7 +80,7 @@ bool Framebuffer::init(bool gen)
                 glGenTextures(params_.numMrts, &color_[0]);
             }
             for (unsigned int i = 0; i < params_.numMrts; i++) {
-                //~ printf("making non msaa color target for id %u\n", color_[i]); fflush(stdout);
+                //printf("making non msaa color target for id %u\n", color_[i]); fflush(stdout);
                 glBindTexture(GL_TEXTURE_2D, color_[i]);
                 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params_.filter);
                 glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params_.filter);
@@ -158,7 +158,7 @@ bool Framebuffer::init(bool gen)
             glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_, 0);
             glBindTexture(GL_TEXTURE_3D, 0);
         } else {
-            //~ printf("making normal z target for id %u\n", depth_); fflush(stdout);
+            //printf("making normal z target for id %u\n", depth_); fflush(stdout);
             glBindTexture(GL_TEXTURE_2D, depth_);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -210,7 +210,7 @@ void Framebuffer::blit()
         glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glDrawBuffer(GL_BACK); // assuming double buffered default framebuffer
         glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, params_.width, params_.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     }
 
@@ -238,7 +238,7 @@ bool Framebuffer::checkStatus(GLenum target) {
     GLuint status = glCheckFramebufferStatus(target);
     switch(status) {
     case GL_FRAMEBUFFER_COMPLETE:
-        printf("framebuffer check ok\n"); fflush(stdout);
+        //printf("framebuffer check ok\n"); fflush(stdout);
         return true;
         break;
 
