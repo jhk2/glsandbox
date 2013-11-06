@@ -23,7 +23,7 @@ void main() {
     gl_Position = pjMatrix * mvPos;
 }
 
-#endif//_VERTEX_
+#endif // _VERTEX_
 
 #ifdef _FRAGMENT_
 
@@ -58,4 +58,4 @@ void main() {
     view_Normal = out_Norm;
 }
 
-#endif _FRAGMENT
+#endif // _FRAGMENT_

@@ -1,5 +1,5 @@
 set(EXTRAS constants.h debug.h glbase.h mesh.h sampler.h utils.h)
-set(KGL_SOURCES camera.cpp framebuffer.cpp glextensionfuncs.cpp matrix.cpp matrixstack.cpp obj.cpp shader.cpp texture.cpp winglbase.cpp)
+set(KGL_SOURCES camera.cpp framebuffer.cpp glextensionfuncs.cpp matrix.cpp matrixstack.cpp obj.cpp shader.cpp shapes.cpp texture.cpp winglbase.cpp)
 add_library(kgl STATIC ${KGL_SOURCES} ${EXTRAS})
 set_target_properties(kgl PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 set_target_properties(kgl PROPERTIES OUTPUT_NAME libkgl)

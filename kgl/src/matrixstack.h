@@ -30,54 +30,53 @@ class MatrixStack {
 		// destructor
 		virtual ~MatrixStack();
 
-        void copy(MatrixTypes type, Matrix &dest) const;
+        void copy(const MatrixTypes type, Matrix &dest) const;
 
 		// passing data of uniform locations, or buffer and offsets,
 		// to  OpenGL
-		void initUniformLocs(GLuint modelviewLoc, GLuint projLoc);
+        void initUniformLocs(const GLuint modelviewLoc, const GLuint projLoc);
 
 		// translation, rotation and scale
 		// a simplified version which affects the MODELVIEW and does
 		// not require the matrix type as a parameters
 		// and a more complete version so that both PROJECTION and
 		// MODELVIEW matrices can be affected
-		void translate(MatrixTypes aType, float x, float y, float z);
-		void translate(float x, float y, float z);
-		void scale(MatrixTypes aType, float x, float y, float z);
-		void scale(float x, float y, float z);
-		void rotate(MatrixTypes aType, float angle, float x, float y, float z);
-		void rotate(float angle, float x, float y, float z);
+        void translate(const MatrixTypes aType, const float x, const float y, const float z);
+        void translate(const float x, const float y, const float z);
+        void translate(const fl3 &vec);
+        void scale(const MatrixTypes aType, const float x, const float y, const float z);
+        void scale(const float x, const float y, const float z);
+        void rotate(const MatrixTypes aType, const float angle, const float x, const float y, const float z);
+        void rotate(const float angle, const float x, const float y, const float z);
 
 		// multiplying an arbitrary matrix into MODELVIEW or PROJECTION
-        void multMatrix(MatrixTypes aType, const float *aMatrix);
+        void multMatrix(const MatrixTypes aType, const float *aMatrix);
 
 		// Loading specific matrices
-		void loadIdentity(MatrixTypes aType);
-        void loadMatrix(MatrixTypes aType, const float *aMatrix);
+        void loadIdentity(const MatrixTypes aType);
+        void loadMatrix(const MatrixTypes aType, const float *aMatrix);
 
 		// push and pop functionality. There is a stack for each
 		// matrix type
-		void pushMatrix(MatrixTypes aType);
-		void popMatrix(MatrixTypes aType);
+        void pushMatrix(const MatrixTypes aType);
+        void popMatrix(const MatrixTypes aType);
 
 		// gluLookAt implementation. Works on the MODELVIEW matrix
-		void lookAt(float xPos, float yPos, float zPos,
-					float xLook, float yLook, float zLook,
-					float xUp, float yUp, float zUp);
+        void lookAt(const float xPos, const float yPos, const float zPos,
+                    const float xLook, const float yLook, const float zLook,
+                    const float xUp, const float yUp, const float zUp);
 
 		// gluPerspective implementation. Works on the PROJECTION matrix
-		void perspective(float fov, float ratio, float nearp, float farp);
+        void perspective(const float fov, const float ratio, const float nearp, const float farp);
 
 		// glOrtho implementation. Works on the PROJECTION matrix
-		void ortho(float left, float right, float bottom, float top, float nearp=-1.0f, float farp=1.0f);
+        void ortho(const float left, const float right, const float bottom, const float top, const float nearp=-1.0f, const float farp=1.0f);
 
 		// glFrustum implementation. Works on the PROJECTION matrix
-		void frustum(float left, float right, float bottom, float top, float nearp, float farp);
+        void frustum(const float left, const float right, const float bottom, const float top, const float nearp, const float farp);
 
 		// send matrices to OpenGL
-		void matrixToUniform(MatrixTypes aType);
-		void matrixToGL(MatrixTypes aType);
-		
+        void matrixToUniform(const MatrixTypes aType);
 
 	protected:
 

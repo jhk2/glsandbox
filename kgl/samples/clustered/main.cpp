@@ -9,6 +9,7 @@
 #include "camera.h"
 #include "framebuffer.h"
 #include "utils.h"
+#include "shapes.h"
 
 #define MOUSE_SENSITIVITY 20.f
 #define MOVESPEED 0.05f
@@ -18,6 +19,13 @@ FirstPersonCamera cam;
 Framebuffer *fbuf; // final non-aa framebuffer
 Framebuffer *gbufs; // g-buffers for deferred
 WinGLBase *window;
+
+struct Light {
+    fl3 pos;
+    float size;
+};
+
+std::vector<Light> lights;
 
 long OnResize(WinGLBase &wnd, HWND hwnd, WPARAM wparam, LPARAM lparam)
 {
@@ -48,6 +56,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     ShaderProgram dprepass ("deferredprepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram drender ("deferredrender.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram lightRender ("light.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
 
     mats.initUniformLocs(0,1);
 
@@ -97,6 +106,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     gquad.addVerts(gverts).addInds(inds).finalize();
 
     Obj testobj ("../assets/ServerBot1.obj");
+
+    Mesh<GLubyte> *lightMesh = createIcosahedron();
+
+    // populate some lights
+    {
+        Light l;
+        l.pos = fl3(10, 10, 10);
+        l.size = 1.0;
+        lights.push_back(l);
+    }
 
     Texture tex ("../assets/white.png");
 
@@ -192,6 +211,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glBindTexture(GL_TEXTURE_2D, 0);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
+
+            // add the markers for lights
+            lightRender.use();
+            mats.loadIdentity(MatrixStack::MODELVIEW);
+            mats.loadIdentity(MatrixStack::PROJECTION);
+            cam.toMatrixAll(mats);
+            for (unsigned int i = 0; i < lights.size(); i++) {
+                Light &l = lights.at(i);
+                mats.pushMatrix(MatrixStack::MODELVIEW);
+                mats.translate(l.pos);
+                mats.matrixToUniform(MatrixStack::MODELVIEW);
+                mats.matrixToUniform(MatrixStack::PROJECTION);
+                lightMesh->draw();
+                mats.popMatrix(MatrixStack::MODELVIEW);
+            }
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

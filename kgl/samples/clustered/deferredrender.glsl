@@ -15,7 +15,7 @@ void main() {
     gl_Position = pjMatrix * mvMatrix * vec4(in_Pos, 1.0);
 }
 
-#endif//_VERTEX_
+#endif // _VERTEX_
 
 #ifdef _FRAGMENT_
 
@@ -36,4 +36,4 @@ void main() {
     out_Color = vec4(view_Normal, 1.0);
 }
 
-#endif _FRAGMENT
+#endif // _FRAGMENT_
