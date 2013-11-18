@@ -45,10 +45,6 @@ struct fl3 {
 	{
 		return fl3(-x,-y,-z);
 	}
-    fl3 fl3::operator*(const float &scalar) const
-	{
-		return fl3(x*scalar, y*scalar, z*scalar);
-	}
     fl3 fl3::operator+(const fl3 &other) const
 	{
 		return fl3(x+other.x, y+other.y, z+other.z);
@@ -57,6 +53,18 @@ struct fl3 {
 	{
 		return fl3(x-other.x, y-other.y, z-other.z);
 	}
+    fl3 fl3::operator*(const float &scalar) const
+    {
+        return fl3(x*scalar, y*scalar, z*scalar);
+    }
+    fl3 fl3::operator*(const fl3 &other) const
+    {
+        return fl3(x*other.x, y*other.y, z*other.z);
+    }
+    fl3 fl3::operator/(const float &scalar) const
+    {
+        return fl3(x/scalar, y/scalar, z/scalar);
+    }
 	fl3& fl3::operator+=(const fl3 &other)
 	{
 		x+=other.x; y+=other.y; z+=other.z;
@@ -67,6 +75,17 @@ struct fl3 {
 		x*=scalar; y*=scalar; z*=scalar;
 		return *this;
 	}
+    fl3& fl3::operator*=(const fl3 &other)
+    {
+        x*=other.x; y*=other.y; z*=other.z;
+        return *this;
+    }
+    fl3& fl3::operator/=(const float &scalar)
+    {
+        x/=scalar; y/=scalar; z/=scalar;
+        return *this;
+    }
+
 	static float fl3::dot(const fl3 &first, const fl3 &second)
 	{
 		return first.x*second.x + first.y*second.y + first.z*second.z;
@@ -100,15 +119,43 @@ struct fl2 {
     {
         return sqrt(lengthSq());
     }
-	fl2 fl2::operator+(const fl2 &other)
+    fl2 fl2::operator+(const fl2 &other) const
 	{
 		return fl2(x+other.x, y+other.y);
 	}
+    fl2 fl2::operator-(const fl2 &other) const
+    {
+        return fl2(x-other.x, y-other.y);
+    }
+    fl2 fl2::operator*(const float &scalar) const
+    {
+        return fl2(x*scalar, y*scalar);
+    }
+    fl2 fl2::operator*(const fl2 &other) const
+    {
+        return fl2(x*other.x, y*other.y);
+    }
 	fl2& fl2::operator+=(const fl2 &other)
 	{
 		x+=other.x; y+=other.y;
 		return *this;
 	}
+    fl2& fl2::operator-=(const fl2 &other)
+    {
+        x-=other.x; y-=other.y;
+        return *this;
+    }
+    fl2& fl2::operator*=(const float &scalar)
+    {
+        x*=scalar; y*=scalar;
+        return *this;
+    }
+
+    fl2& fl2::operator*=(const fl2 &other)
+    {
+        x*=other.x; y*=other.y;
+        return *this;
+    }
 };
 
 // integer vector
@@ -119,9 +166,9 @@ struct int2 {
 		};
 		int xy[2];
 	};
-	int2() : x(0), y(0) {};
-	int2(const int2 &other) : x(other.x), y(other.y) {};
-	int2(const int nx, const int ny) : x(nx), y(ny) {};
+    int2() : x(0), y(0) {}
+    int2(const int2 &other) : x(other.x), y(other.y) {}
+    int2(const int nx, const int ny) : x(nx), y(ny) {}
 	int2 int2::operator+(const int2 &other)
 	{
 		return int2(x+other.x, y+other.y);

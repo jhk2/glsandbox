@@ -16,7 +16,7 @@ Mesh<GLubyte>* createQuad()
     return quad;
 }
 
-Mesh<GLubyte>* createIcosahedron()
+Mesh<GLubyte>* createIcosahedron(const bool patches)
 {
     std::vector<fl3> icoverts;
     icoverts.push_back(fl3(0, 0, 1.0f));
@@ -52,7 +52,7 @@ Mesh<GLubyte>* createIcosahedron()
     iinds.push_back(8); iinds.push_back(9); iinds.push_back(4);
     iinds.push_back(9); iinds.push_back(10); iinds.push_back(5);
     iinds.push_back(10); iinds.push_back(6); iinds.push_back(1);
-    InterleavedMesh<fl3, GLubyte> *ico = new InterleavedMesh<fl3, GLubyte>(GL_TRIANGLES);
+    InterleavedMesh<fl3, GLubyte> *ico = new InterleavedMesh<fl3, GLubyte>(patches ? GL_PATCHES : GL_TRIANGLES);
     ico->addAttrib(0, AttributeInfoSpec<GLfloat>(3));
     ico->addVerts(icoverts).addInds(iinds).finalize();
     return ico;

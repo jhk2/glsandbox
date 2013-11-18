@@ -180,12 +180,11 @@ bool Framebuffer::init(bool gen)
     return check;
 }
 
-void Framebuffer::blit(Framebuffer &dest)
+void Framebuffer::blit(Framebuffer &dest, const bool blitColor, const bool blitDepth)
 {
-    assert(params_.numMrts == dest.params_.numMrts);
-
-    if (params_.colorEnable && dest.params_.colorEnable) {
+    if (params_.colorEnable && dest.params_.colorEnable && blitColor) {
         for (int i = 0; i < params_.numMrts; i++) {
+            assert(params_.numMrts == dest.params_.numMrts);
             glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
             glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest.id_);
@@ -194,7 +193,7 @@ void Framebuffer::blit(Framebuffer &dest)
         }
     }
 
-    if (params_.depthEnable && dest.params_.depthEnable) {
+    if (params_.depthEnable && dest.params_.depthEnable && blitDepth) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest.id_);
         glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, dest.params_.width, dest.params_.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
@@ -204,9 +203,9 @@ void Framebuffer::blit(Framebuffer &dest)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
-void Framebuffer::blit()
+void Framebuffer::blit(const bool blitColor, const bool blitDepth)
 {
-    if (params_.colorEnable) {
+    if (params_.colorEnable && blitColor) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
         glReadBuffer(GL_COLOR_ATTACHMENT0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -214,7 +213,7 @@ void Framebuffer::blit()
         glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, params_.width, params_.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     }
 
-    if (params_.depthEnable) {
+    if (params_.depthEnable && blitDepth) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, id_);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glBlitFramebuffer(0, 0, params_.width, params_.height, 0, 0, params_.width, params_.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);

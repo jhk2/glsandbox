@@ -6,6 +6,6 @@
 // utility functions for making common shapes
 
 Mesh<GLubyte>* createQuad();
-Mesh<GLubyte>* createIcosahedron();
+Mesh<GLubyte>* createIcosahedron(const bool patches = false);
 
 #endif // SHAPES_H

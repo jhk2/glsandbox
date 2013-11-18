@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-// class for representing a matrix (presumably to be used by OpenGL in some way)
+// class for representing a 4x4 transformation matrix (presumably to be used by OpenGL in some way)
 // most math copied from Lighthouse3D VSML
 // http://www.lighthouse3d.com/very-simple-libs
 
@@ -13,6 +13,12 @@ public:
     Matrix();
     Matrix(const Matrix &other);
 
+    // basic matrix math for convenient non-GPU calculations
+    fl3 multiplyPoint(const fl3 &pt) const;
+    fl3 multiplyVector(const fl3 &vec) const;
+    // gonna skip covectors and inverse/transpose for now since it's not needed
+
+    // matrix operations for transformations
     void multMatrix(const float *other);
     void multMatrix(const Matrix &other);
 
@@ -40,6 +46,7 @@ public:
     const float* data() const;
     void print();
 private:
+    // 16 matrix entries (4x4) stored in column-major order
     float entries_[16];
 
     void lookAtHelper(const fl3 &pos, const fl3 &dir, const fl3 &up, const fl3 &right);

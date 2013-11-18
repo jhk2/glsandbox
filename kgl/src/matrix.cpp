@@ -22,6 +22,28 @@ Matrix::Matrix(const Matrix &other)
     loadMatrix(other.data());
 }
 
+fl3 Matrix::multiplyPoint(const fl3 &pt) const
+{
+    fl3 output;
+    output.x = entries_[0]*pt.x + entries_[4]*pt.y + entries_[8]*pt.z + entries_[12];
+    output.y = entries_[1]*pt.x + entries_[5]*pt.y + entries_[9]*pt.z + entries_[13];
+    output.z = entries_[2]*pt.x + entries_[6]*pt.y + entries_[10]*pt.z + entries_[14];
+    float w = entries_[3]*pt.x + entries_[7]*pt.y + entries_[11]*pt.z + entries_[15];
+    output /= w; // returns the homogenized point (w=1)
+    return output;
+}
+
+fl3 Matrix::multiplyVector(const fl3 &vec) const
+{
+    // vec is assumed to be a column vector to be dot product-ed with each matrix row
+    // output is another column vector
+    fl3 output;
+    output.x = entries_[0]*vec.x + entries_[4]*vec.y + entries_[8]*vec.z;
+    output.y = entries_[1]*vec.x + entries_[5]*vec.y + entries_[9]*vec.z;
+    output.z = entries_[2]*vec.x + entries_[6]*vec.y + entries_[10]*vec.z;
+    return output;
+}
+
 void Matrix::multMatrix(const float *other)
 {
     float res[16];

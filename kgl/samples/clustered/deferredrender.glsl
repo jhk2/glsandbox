@@ -23,6 +23,7 @@ uniform layout(binding = 0) sampler2D ambient_map;
 uniform layout(binding = 1) sampler2D diffuse_map;
 uniform layout(binding = 2) sampler2D specular_map;
 uniform layout(binding = 3) sampler2D normal_map;
+uniform layout(binding = 4) sampler2D depth_map;
 
 in vec2 out_Tex;
 
@@ -34,6 +35,8 @@ void main() {
     vec4 specular_Color = texture(specular_map, out_Tex);
     vec3 view_Normal = texture(normal_map, out_Tex).xyz;
     out_Color = vec4(view_Normal, 1.0);
+    //out_Color = vec4(texture(depth_map, out_Tex).rgb, 1.0);
+    gl_FragDepth = texture(depth_map, out_Tex).r;
 }
 
 #endif // _FRAGMENT_

@@ -30,8 +30,8 @@ class Framebuffer
 		void bind();
 		bool bindColorTexture(unsigned int idx = 0);
 		bool bindDepthTexture();
-		void blit(Framebuffer &dest);
-		void blit(); // blits to default framebuffer
+        void blit(Framebuffer &dest, const bool blitColor = true, const bool blitDepth = true);
+        void blit(const bool blitColor = true, const bool blitDepth = true); // blits to default framebuffer
 		void resize(GLuint width, GLuint height);
 
         // dump contents to output
