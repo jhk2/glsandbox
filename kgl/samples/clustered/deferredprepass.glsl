@@ -48,13 +48,13 @@ in vec3 out_Norm;
 
 out layout(location = 0) vec3 ambient_Color;
 out layout(location = 1) vec3 diffuse_Color;
-out layout(location = 2) vec3 specular_Color;
+out layout(location = 2) vec4 specular_Color;
 out layout(location = 3) vec3 view_Normal;
 
 void main() {
     ambient_Color = texture(map_Ka, out_Tex).rgb;
     diffuse_Color = texture(map_Kd, out_Tex).rgb;
-    specular_Color = texture(map_Ks, out_Tex).rgb;
+    specular_Color = vec4(texture(map_Ks, out_Tex).rgb, Ns);
     view_Normal = out_Norm;
 }
 

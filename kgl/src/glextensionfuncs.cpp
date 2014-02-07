@@ -12,10 +12,14 @@
 PFNGLBINDBUFFERPROC glBindBuffer;
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBUFFERDATAPROC glBufferData;
+PFNGLBUFFERSUBDATAPROC glBufferSubData;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 
-// indexed buffer objects
+// indexed buffer objects (for uniform buffers and transform feedback)
 PFNGLBINDBUFFERBASEPROC glBindBufferBase;
+
+// texture buffer objects
+PFNGLTEXBUFFERRANGEPROC glTexBufferRange;
 
 // vertex attributes
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
@@ -113,10 +117,14 @@ void loadGLExtensions()
 	glBindBuffer = (PFNGLBINDBUFFERPROC) GETPROCADDR("glBindBuffer");
 	glGenBuffers = (PFNGLGENBUFFERSPROC) GETPROCADDR("glGenBuffers");
 	glBufferData = (PFNGLBUFFERDATAPROC) GETPROCADDR("glBufferData");
+    glBufferSubData = (PFNGLBUFFERSUBDATAPROC) GETPROCADDR("glBufferSubData");
 	glDeleteBuffers = (PFNGLDELETEBUFFERSPROC) GETPROCADDR("glDeleteBuffers");
 	
-	// indexed buffer objects
+    // indexed buffer objects (for uniform buffers and transform feedback)
 	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC) GETPROCADDR("glBindBufferBase");
+
+    // texture buffer objects
+    glTexBufferRange = (PFNGLTEXBUFFERRANGEPROC) GETPROCADDR("glTexBufferRange");
 	
 	// vertex attributes
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) GETPROCADDR("glEnableVertexAttribArray");

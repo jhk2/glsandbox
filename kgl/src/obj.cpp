@@ -361,7 +361,7 @@ bool Obj::loadMaterials(const char *filename)
 		GLuint &ubo = mat->ubo;
 		glGenBuffers(1, &ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(ObjMaterial::ObjUniformBlock), &currentmat->ublock, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(ObjMaterial::ObjUniformBlock), &currentmat->ublock, GL_STATIC_READ);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 	return true;

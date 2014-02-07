@@ -6,9 +6,9 @@ class Camera
 {
 	public:
 		Camera();
-		Camera(double fovy, double aspect, double zNear, double zFar);
+        Camera(float fovy, float aspect, float zNear, float zFar);
 		virtual ~Camera();
-		void init(double fovy, double aspect, double zNear, double zFar);
+        void init(float fovy, float aspect, float zNear, float zFar);
 		// send the current camera parameters to the current matrix
         void toMatrixAll(MatrixStack &mstack) const;
         void toMatrixPj(MatrixStack &mstack) const;
@@ -24,17 +24,19 @@ class Camera
 		Camera& setRot(fl2 &newrot);
 		Camera& setPos(fl3 &newpos);
         fl3 getPos() const { return pos_; }
+        fl3 getUp() const;
+        fl3 getLook() const;
 	protected:
 		fl2 rot_; // around x and y axes (pitch and yaw) by degrees (no roll)
 		fl3 pos_;
-		double fovy_, aspect_, zNear_, zFar_;
+        float fovy_, aspect_, zNear_, zFar_;
 };
 
 class FirstPersonCamera : public Camera
 {
 	public:
 		FirstPersonCamera();
-		FirstPersonCamera(double fovy, double aspect, double zNear, double zFar);
+        FirstPersonCamera(float fovy, float aspect, float zNear, float zFar);
 		virtual ~FirstPersonCamera();
         void toMatrixMv(MatrixStack &mstack) const;
         void toMatrixMv(Matrix &matrix) const;
@@ -47,7 +49,7 @@ class ThirdPersonCamera : public Camera
 {
 	public:
 		ThirdPersonCamera();
-		ThirdPersonCamera(double fovy, double aspect, double zNear, double zFar, double distance);
+        ThirdPersonCamera(float fovy, float aspect, float zNear, float zFar, float distance);
 		virtual ~ThirdPersonCamera();
         void toMatrixMv(MatrixStack &mstack) const;
         void toMatrixMv(Matrix &matrix) const;
@@ -57,8 +59,8 @@ class ThirdPersonCamera : public Camera
 		// movement in world space, not camera space, or just the point the camera is looking at
 		// it is the responsibility of the caller to figure out how the point moves
 		Camera& move(fl3 &tomove);
-		ThirdPersonCamera& setDistance(double distance);
+        ThirdPersonCamera& setDistance(float distance);
 	private:
-		double distance_;
+        float distance_;
 };
 #endif // CAMERA_H

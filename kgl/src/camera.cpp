@@ -7,7 +7,7 @@ Camera::Camera() : rot_(), pos_(), fovy_(0), aspect_(0), zNear_(0), zFar_(0)
 	
 }
 
-Camera::Camera(double fovy, double aspect, double zNear, double zFar)
+Camera::Camera(float fovy, float aspect, float zNear, float zFar)
 {
 	init(fovy, aspect, zNear, zFar);
 }
@@ -17,7 +17,7 @@ Camera::~Camera()
 	
 }
 
-void Camera::init(double fovy, double aspect, double zNear, double zFar)
+void Camera::init(float fovy, float aspect, float zNear, float zFar)
 {
 	fovy_ = fovy;
 	aspect_ = aspect;
@@ -76,9 +76,26 @@ Camera& Camera::setPos(fl3 &newpos)
 	return *this;
 }
 
+fl3 Camera::getUp() const
+{
+    // TODO: for getting up/look vectors, we can directly extract rows (or was it columns) of the rotation matrix
+    Matrix temp;
+    temp.rotate(rot_.y, 0, 1, 0);
+    temp.rotate(rot_.x, 1, 0, 0);
+    return temp.multiplyVector(fl3(0, 1, 0));
+}
+
+fl3 Camera::getLook() const
+{
+    Matrix temp;
+    temp.rotate(rot_.y, 0, 1, 0);
+    temp.rotate(rot_.x, 1, 0, 0);
+    return temp.multiplyVector(fl3(0, 0, -1));
+}
+
 FirstPersonCamera::FirstPersonCamera() : Camera() {}
 	
-FirstPersonCamera::FirstPersonCamera(double fovy, double aspect, double zNear, double zFar) :
+FirstPersonCamera::FirstPersonCamera(float fovy, float aspect, float zNear, float zFar) :
 	Camera(fovy, aspect, zNear, zFar) {}
 
 FirstPersonCamera::~FirstPersonCamera() {}
@@ -110,7 +127,7 @@ void FirstPersonCamera::toMatrixMv(Matrix &matrix) const
 
 ThirdPersonCamera::ThirdPersonCamera() : Camera(), distance_(0) {}
 
-ThirdPersonCamera::ThirdPersonCamera(double fovy, double aspect, double zNear, double zFar, double distance) :
+ThirdPersonCamera::ThirdPersonCamera(float fovy, float aspect, float zNear, float zFar, float distance) :
 	Camera(fovy, aspect, zNear, zFar), distance_(distance) {}
 
 ThirdPersonCamera::~ThirdPersonCamera() {}
@@ -157,7 +174,7 @@ void ThirdPersonCamera::toMatrixMvAvatar(Matrix &matrix) const
     matrix.rotate(-rot_.x, 1, 0, 0);
 }
 
-ThirdPersonCamera& ThirdPersonCamera::setDistance(double distance)
+ThirdPersonCamera& ThirdPersonCamera::setDistance(float distance)
 {
 	distance_ = distance;
 	return *this;

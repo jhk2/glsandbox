@@ -16,7 +16,9 @@ public:
     // basic matrix math for convenient non-GPU calculations
     fl3 multiplyPoint(const fl3 &pt) const;
     fl3 multiplyVector(const fl3 &vec) const;
-    // gonna skip covectors and inverse/transpose for now since it's not needed
+
+    bool getInverse(Matrix &out) const;
+    // gonna skip covectors and transpose for now since it's not needed
 
     // matrix operations for transformations
     void multMatrix(const float *other);

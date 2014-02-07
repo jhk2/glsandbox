@@ -15,6 +15,7 @@ void setIdentityMatrix(float *mat)
 
 Matrix::Matrix()
 {
+    loadIdentity();
 }
 
 Matrix::Matrix(const Matrix &other)
@@ -42,6 +43,136 @@ fl3 Matrix::multiplyVector(const fl3 &vec) const
     output.y = entries_[1]*vec.x + entries_[5]*vec.y + entries_[9]*vec.z;
     output.z = entries_[2]*vec.x + entries_[6]*vec.y + entries_[10]*vec.z;
     return output;
+}
+
+// just a copy of gluInvertMatrix
+bool Matrix::getInverse(Matrix &out) const
+{
+    out.entries_[0] = entries_[5]  * entries_[10] * entries_[15] -
+            entries_[5]  * entries_[11] * entries_[14] -
+            entries_[9]  * entries_[6]  * entries_[15] +
+            entries_[9]  * entries_[7]  * entries_[14] +
+            entries_[13] * entries_[6]  * entries_[11] -
+            entries_[13] * entries_[7]  * entries_[10];
+
+    out.entries_[4] = -entries_[4]  * entries_[10] * entries_[15] +
+            entries_[4]  * entries_[11] * entries_[14] +
+            entries_[8]  * entries_[6]  * entries_[15] -
+            entries_[8]  * entries_[7]  * entries_[14] -
+            entries_[12] * entries_[6]  * entries_[11] +
+            entries_[12] * entries_[7]  * entries_[10];
+
+    out.entries_[8] = entries_[4]  * entries_[9] * entries_[15] -
+            entries_[4]  * entries_[11] * entries_[13] -
+            entries_[8]  * entries_[5] * entries_[15] +
+            entries_[8]  * entries_[7] * entries_[13] +
+            entries_[12] * entries_[5] * entries_[11] -
+            entries_[12] * entries_[7] * entries_[9];
+
+    out.entries_[12] = -entries_[4]  * entries_[9] * entries_[14] +
+            entries_[4]  * entries_[10] * entries_[13] +
+            entries_[8]  * entries_[5] * entries_[14] -
+            entries_[8]  * entries_[6] * entries_[13] -
+            entries_[12] * entries_[5] * entries_[10] +
+            entries_[12] * entries_[6] * entries_[9];
+
+    out.entries_[1] = -entries_[1]  * entries_[10] * entries_[15] +
+            entries_[1]  * entries_[11] * entries_[14] +
+            entries_[9]  * entries_[2] * entries_[15] -
+            entries_[9]  * entries_[3] * entries_[14] -
+            entries_[13] * entries_[2] * entries_[11] +
+            entries_[13] * entries_[3] * entries_[10];
+
+    out.entries_[5] = entries_[0]  * entries_[10] * entries_[15] -
+            entries_[0]  * entries_[11] * entries_[14] -
+            entries_[8]  * entries_[2] * entries_[15] +
+            entries_[8]  * entries_[3] * entries_[14] +
+            entries_[12] * entries_[2] * entries_[11] -
+            entries_[12] * entries_[3] * entries_[10];
+
+    out.entries_[9] = -entries_[0]  * entries_[9] * entries_[15] +
+            entries_[0]  * entries_[11] * entries_[13] +
+            entries_[8]  * entries_[1] * entries_[15] -
+            entries_[8]  * entries_[3] * entries_[13] -
+            entries_[12] * entries_[1] * entries_[11] +
+            entries_[12] * entries_[3] * entries_[9];
+
+    out.entries_[13] = entries_[0]  * entries_[9] * entries_[14] -
+            entries_[0]  * entries_[10] * entries_[13] -
+            entries_[8]  * entries_[1] * entries_[14] +
+            entries_[8]  * entries_[2] * entries_[13] +
+            entries_[12] * entries_[1] * entries_[10] -
+            entries_[12] * entries_[2] * entries_[9];
+
+    out.entries_[2] = entries_[1]  * entries_[6] * entries_[15] -
+            entries_[1]  * entries_[7] * entries_[14] -
+            entries_[5]  * entries_[2] * entries_[15] +
+            entries_[5]  * entries_[3] * entries_[14] +
+            entries_[13] * entries_[2] * entries_[7] -
+            entries_[13] * entries_[3] * entries_[6];
+
+    out.entries_[6] = -entries_[0]  * entries_[6] * entries_[15] +
+            entries_[0]  * entries_[7] * entries_[14] +
+            entries_[4]  * entries_[2] * entries_[15] -
+            entries_[4]  * entries_[3] * entries_[14] -
+            entries_[12] * entries_[2] * entries_[7] +
+            entries_[12] * entries_[3] * entries_[6];
+
+    out.entries_[10] = entries_[0]  * entries_[5] * entries_[15] -
+            entries_[0]  * entries_[7] * entries_[13] -
+            entries_[4]  * entries_[1] * entries_[15] +
+            entries_[4]  * entries_[3] * entries_[13] +
+            entries_[12] * entries_[1] * entries_[7] -
+            entries_[12] * entries_[3] * entries_[5];
+
+    out.entries_[14] = -entries_[0]  * entries_[5] * entries_[14] +
+            entries_[0]  * entries_[6] * entries_[13] +
+            entries_[4]  * entries_[1] * entries_[14] -
+            entries_[4]  * entries_[2] * entries_[13] -
+            entries_[12] * entries_[1] * entries_[6] +
+            entries_[12] * entries_[2] * entries_[5];
+
+    out.entries_[3] = -entries_[1] * entries_[6] * entries_[11] +
+            entries_[1] * entries_[7] * entries_[10] +
+            entries_[5] * entries_[2] * entries_[11] -
+            entries_[5] * entries_[3] * entries_[10] -
+            entries_[9] * entries_[2] * entries_[7] +
+            entries_[9] * entries_[3] * entries_[6];
+
+    out.entries_[7] = entries_[0] * entries_[6] * entries_[11] -
+            entries_[0] * entries_[7] * entries_[10] -
+            entries_[4] * entries_[2] * entries_[11] +
+            entries_[4] * entries_[3] * entries_[10] +
+            entries_[8] * entries_[2] * entries_[7] -
+            entries_[8] * entries_[3] * entries_[6];
+
+    out.entries_[11] = -entries_[0] * entries_[5] * entries_[11] +
+            entries_[0] * entries_[7] * entries_[9] +
+            entries_[4] * entries_[1] * entries_[11] -
+            entries_[4] * entries_[3] * entries_[9] -
+            entries_[8] * entries_[1] * entries_[7] +
+            entries_[8] * entries_[3] * entries_[5];
+
+    out.entries_[15] = entries_[0] * entries_[5] * entries_[10] -
+            entries_[0] * entries_[6] * entries_[9] -
+            entries_[4] * entries_[1] * entries_[10] +
+            entries_[4] * entries_[2] * entries_[9] +
+            entries_[8] * entries_[1] * entries_[6] -
+            entries_[8] * entries_[2] * entries_[5];
+
+    const float det = entries_[0] * out.entries_[0] + entries_[1] * out.entries_[4] + entries_[2] * out.entries_[8] + entries_[3] * out.entries_[12];
+
+    if (det == 0) {
+        return false;
+    }
+
+    const float invdet = 1.0f / det;
+
+    for (int i = 0; i < 16; i++) {
+        out.entries_[i] = out.entries_[i] * invdet;
+    }
+
+    return true;
 }
 
 void Matrix::multMatrix(const float *other)

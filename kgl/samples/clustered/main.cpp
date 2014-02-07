@@ -18,7 +18,8 @@
 #define FOV_Y 45
 
 MatrixStack mats;
-Matrix lightMat;
+Matrix camMv;
+Matrix camPj;
 FirstPersonCamera cam;
 Framebuffer *fbuf; // final non-aa framebuffer
 Framebuffer *gbufs; // g-buffers for deferred
@@ -26,7 +27,9 @@ WinGLBase *window;
 
 struct Light {
     fl3 pos;
+    fl3 power; // light power in each channel
     float size;
+
 };
 
 std::vector<Light> lights;
@@ -60,7 +63,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     ShaderProgram dprepass ("deferredprepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram drender ("deferredrender.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-    ShaderProgram lightRender ("light.glsl", Shader::VERTEX_SHADER | Shader::TESSELLATION_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram lightRender ("light.glsl", Shader::VERTEX_SHADER | Shader::TESSELLATION_SHADER | Shader::GEOMETRY_SHADER | Shader::FRAGMENT_SHADER);
 
     mats.initUniformLocs(0,1);
 
@@ -119,13 +122,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     Mesh<GLubyte> *lightMesh = createIcosahedron(true);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
+    int closestLight = -1;
+    float closestDepth = -FLT_MAX;
+    fl3 intersectPoint;
+    fl3 originalCenter;
 
     // populate some lights
+    GLuint lightsTex;
+    GLuint lightsBuf;
     {
         Light l;
         l.pos = fl3(10, 10, 10);
+        l.power = fl3(100.0, 100.0, 100.0);
         l.size = 1.0;
         lights.push_back(l);
+        l.pos = fl3(-10, 10, 10);
+        lights.push_back(l);
+
+        // for the shaders, we want to store the light properties in a texture buffer
+        glGenBuffers(1, &lightsBuf);
+        glBindBuffer(GL_TEXTURE_BUFFER, lightsBuf);
+        glBufferData(GL_TEXTURE_BUFFER, sizeof(Light)*lights.size(), &lights[0], GL_STATIC_READ);
+        glGenTextures(1, &lightsTex);
+        glBindTexture(GL_TEXTURE_BUFFER, lightsTex);
+        glTexBufferRange(GL_TEXTURE_BUFFER, GL_R32F, lightsBuf, 0, sizeof(Light)*lights.size());
+        glBindBuffer(GL_TEXTURE_BUFFER, 0);
+        glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
 
     Texture tex ("../assets/white.png");
@@ -154,81 +176,152 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             fl2 dxdy = window->getMouseNorm_dxdy();
             cam.rotate(fl2(-MOUSE_SENSITIVITY * dxdy.y, -MOUSE_SENSITIVITY * dxdy.x));
         }
-        if (window->isMousePress(MOUSE_LEFT)) {
-            cam.toMatrixMv(lightMat);
+        cam.toMatrixMv(camMv);
+        cam.toMatrixPj(camPj);
+        if (window->isMouseDown(MOUSE_LEFT)) {
             // generate a ray in normalized device coordinates
             fl2 mpos = window->getMouseNormPos();
-            // transform to ndc
+            // transform to ndc (-1, 1)
             mpos *= 2;
             mpos -= fl2(1,1);
             mpos.y *= -1;
             // now calculate the ray params according to relative FOV
+            // this is slightly inaccurate, switching to matrix operations
             const float FOV_X = FOV_Y * window->getWidth() / (float) window->getHeight();
+            /*
             fl3 ray;
             float cosfovx = cos(0.5 * mpos.x * DEGTORAD(FOV_X));
             ray.x = sin(0.5 * mpos.x * DEGTORAD(FOV_X));
             ray.y = sin(0.5 * mpos.y * DEGTORAD(FOV_Y)) / cos(0.5 * mpos.y * DEGTORAD(FOV_Y));
             ray.z = -cosfovx;
             ray.normalize();
-            // see if we select a light
-            for (unsigned int i = 0; i < lights.size(); i++) {
-                Light &li = lights.at(i);
+            printf("ray1: %g, %g, %g\n", ray.x, ray.y, ray.z); fflush(stdout);
+            */
 
-                // do a ray-sphere intersection for the light
-                // transform light center to view space
+            // see http://antongerdelan.net/opengl/raycasting.html
+            // transform to homogeneous clip coordinates
+            //float ray_clip [4];
+            //ray_clip[0] = mpos.x; ray_clip[1] = mpos.y; ray_clip[2] = -1.0f; ray_clip[3] = 1.0f;
+            fl3 ray_clip;
+            ray_clip.x = mpos.x; ray_clip.y = mpos.y; ray_clip.z = -1.0f;
+            // transform to camera/eye space
+            Matrix invproj;
+            camPj.getInverse(invproj);
+            fl3 ray = invproj.multiplyPoint(ray_clip);
+            ray.normalize();
+            //printf("ray2: %g, %g, %g\n", ray.x, ray.y, ray.z); fflush(stdout);
 
-                fl3 wpos = lightMat.multiplyPoint(li.pos);
+            if (window->isMousePress(MOUSE_LEFT)) {
+                float closest = FLT_MAX; // distance along ray to closest light, start at max positive value
 
-                // ray-sphere intersection formula
-                const fl3 oc = -wpos;
-                const float loc = fl3::dot(ray, oc);
-                const float test = (loc*loc - fl3::dot(oc, oc) + li.size*li.size);
+                // see if we select a light
+                for (unsigned int i = 0; i < lights.size(); i++) {
+                    Light &li = lights.at(i);
 
-                if (test >= 0) {
-                    // we have an intersection
-                    printf("ray intersects sphere\n");
-                } else {
-                    printf("ray does not intersect sphere\n");
+                    // do a ray-sphere intersection for the light
+                    // transform light center to view space
+
+                    fl3 wpos = camMv.multiplyPoint(li.pos);
+
+                    // ray-sphere intersection formula
+                    const fl3 oc = -wpos;
+                    const float loc = fl3::dot(ray, oc);
+                    const float test = (loc*loc - fl3::dot(oc, oc) + li.size*li.size);
+
+                    if (test >= 0) {
+                        // we have a ray sphere intersection
+                        // now find its exact location
+                        const float d0 = -loc - sqrt(test);
+                        const float d1 = -loc + sqrt(test);
+                        if (d0 > 0 && d0 < closest) {
+                            // d0 must be the closest
+                            closest = d0;
+                        } else if (d1 > 0 && d1 < closest) {
+                            closest = d1;
+                        }
+                        if (d0 > 0 || d1 > 0) {
+                            closestLight = i;
+                            closestDepth = closest;
+                            intersectPoint = ray * closestDepth; // intersect point in view space
+                            originalCenter = li.pos;
+                        }
+                        // we have an intersection and it's the closest light found so far
+
+                    }
+                    /*
+                    // the math for this isn't working right, but leaving it here in case of revisit in the future
+                    // need to calculate the screen space extents of the light
+                    // start with the center point of the light, and find its screen space position
+                    cam.toMatrixAll(mats);
+                    mats.copy(MatrixStack::MODELVIEW, camMv);
+                    fl3 sspos = camMv.multiplyPoint(li.pos);
+                    const float z = sspos.z;
+                    mats.copy(MatrixStack::PROJECTION, camMv);
+                    sspos = camMv.multiplyPoint(sspos);
+                    // transform to normalized window coordinates by negating y, adding 1 and scaling by 0.5
+                    sspos.y *= -1.f;
+                    sspos += fl3(1,1,0);
+                    sspos *= fl3(0.5f, 0.5f, 0);
+                    //printf("light position is %g, %g\n", sspos.x, sspos.y);
+                    //printf("mouse position is %g, %g\n", window->getMouseNormPos().x, window->getMouseNormPos().y);
+                    //fflush(stdout);
+
+                    // now to find light's extents onscreen at the given distance from camera
+                    // we define the vertical FOV
+                    // then we know the total viewable range at the given distance
+                    float totalview = 2 * -z * tan(0.5 * RADTODEG(FOV_Y));
+                    // then we divide the radius by that total amount to find the fraction of the screen taken up by that radius
+                    float rscaled = li.size / totalview;
+
+                    // then calculate the distance from the mouse pointer to the light center
+                    const fl2 &mpos = window->getMouseNormPos();
+                    const fl3 mtol = sspos - fl3(mpos.x, mpos.y, 0);
+                    const float mdist = mtol.length();
+
+                    printf("mouse distance to light: %g, scaled radius: %g\n", mdist, rscaled);
+                    fflush(stdout);
+
+                    //printf("light radius in y pixels (%u): %g\n", window->getHeight(), rscaled * window->getHeight());
+                    //fflush(stdout);
+                    */
                 }
-                fflush(stdout);
-                /*
-                // the math for this isn't working right, but leaving it here in case of revisit in the future
-                // need to calculate the screen space extents of the light
-                // start with the center point of the light, and find its screen space position
-                cam.toMatrixAll(mats);
-                mats.copy(MatrixStack::MODELVIEW, lightMat);
-                fl3 sspos = lightMat.multiplyPoint(li.pos);
-                const float z = sspos.z;
-                mats.copy(MatrixStack::PROJECTION, lightMat);
-                sspos = lightMat.multiplyPoint(sspos);
-                // transform to normalized window coordinates by negating y, adding 1 and scaling by 0.5
-                sspos.y *= -1.f;
-                sspos += fl3(1,1,0);
-                sspos *= fl3(0.5f, 0.5f, 0);
-                //printf("light position is %g, %g\n", sspos.x, sspos.y);
-                //printf("mouse position is %g, %g\n", window->getMouseNormPos().x, window->getMouseNormPos().y);
-                //fflush(stdout);
-
-                // now to find light's extents onscreen at the given distance from camera
-                // we define the vertical FOV
-                // then we know the total viewable range at the given distance
-                float totalview = 2 * -z * tan(0.5 * RADTODEG(FOV_Y));
-                // then we divide the radius by that total amount to find the fraction of the screen taken up by that radius
-                float rscaled = li.size / totalview;
-
-                // then calculate the distance from the mouse pointer to the light center
-                const fl2 &mpos = window->getMouseNormPos();
-                const fl3 mtol = sspos - fl3(mpos.x, mpos.y, 0);
-                const float mdist = mtol.length();
-
-                printf("mouse distance to light: %g, scaled radius: %g\n", mdist, rscaled);
-                fflush(stdout);
-
-                //printf("light radius in y pixels (%u): %g\n", window->getHeight(), rscaled * window->getHeight());
-                //fflush(stdout);
-                */
-                break;
+                // now we should have the closest light to the camera which was moused over
             }
+            if (closestLight >= 0) {
+                // we have a light selected and are possibly dragging it
+                fl3 translation = (ray * closestDepth) - intersectPoint; // translation in eye space
+                // inverse camera matrix should put it back in world space
+                Matrix inverseCam;
+                camMv.getInverse(inverseCam);
+                fl3 finaltrans = inverseCam.multiplyVector(translation);
+                // now move the light by this amount
+                Light &li = lights.at(closestLight);
+                li.pos = originalCenter + finaltrans;
+                // need to update the corresponding light data in the GPU buffer
+                glBindBuffer(GL_TEXTURE_BUFFER, lightsBuf);
+                glBufferSubData(GL_TEXTURE_BUFFER, sizeof(Light)*closestLight, sizeof(fl3), &li.pos);
+
+                /* switching from dxdy implementation to matrix backprojection method
+                const fl2 dxdy = window->getMouseNorm_dxdy();
+                // we want to move y along the up vector and move x along our generated ray cross up vector
+                const fl3 ytrans = cam.getUp();
+                const fl3 xtrans = fl3::cross(cam.getLook(), ytrans);
+                Light &li = lights.at(closestLight);
+                //printf("moving light index %i, dxdy=%g,%g\n", closestLight, dxdy.x, dxdy.y);
+                // TODO: up vector is incorrect when looking in from the side
+                //printf("xtrans: %g,%g,%g; ytrans: %g,%g,%g\n", xtrans.x, xtrans.y, xtrans.z, ytrans.x, ytrans.y, ytrans.z);
+                //printf("position before: %g,%g,%g\n", li.pos.x, li.pos.y, li.pos.z);
+                const float scalex = 2 * closestDepth * tan(DEGTORAD(FOV_X/2.0f));
+                const float scaley = 2 * closestDepth * tan(DEGTORAD(FOV_Y/2.0f));
+                li.pos += (xtrans * dxdy.x * scalex) + (ytrans * -dxdy.y * scaley);
+                //printf("position after: %g,%g,%g\n", li.pos.x, li.pos.y, li.pos.z);
+                fflush(stdout);
+                */
+            }
+        }
+        if (window->isMouseRelease(MOUSE_LEFT)) {
+            // deselect the closest light
+            closestLight = -1;
         }
         fl3 tomove;
         if(window->isKeyDown(KEY_W)) {
@@ -288,12 +381,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glActiveTexture(GL_TEXTURE4);
             gbufs->bindDepthTexture();
             smapRender.bind(4);
+            glActiveTexture(GL_TEXTURE5);
+            glBindTexture(GL_TEXTURE_BUFFER, lightsTex);
 
             drender.use();
+            glUniform1ui(5, lights.size());
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);
+            glUniformMatrix4fv(3, 1, false, camMv.data());
+            glUniformMatrix4fv(4, 1, false, camPj.data());
             quad.draw();
 
+            glBindTexture(GL_TEXTURE_BUFFER, 0);
+            glActiveTexture(GL_TEXTURE4);
             glBindSampler(0,0);
             glBindTexture(GL_TEXTURE_2D, 0);
             glActiveTexture(GL_TEXTURE3);
@@ -309,18 +409,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             //gbufs->blit(*fbuf, false, true);
             //fbuf->bind();
 
+            glEnable(GL_DEPTH_TEST);
             // add the markers for lights
             lightRender.use();
             mats.loadIdentity(MatrixStack::MODELVIEW);
             mats.loadIdentity(MatrixStack::PROJECTION);
             cam.toMatrixAll(mats);
+            mats.matrixToUniform(MatrixStack::PROJECTION);
             for (unsigned int i = 0; i < lights.size(); i++) {
                 Light &l = lights.at(i);
                 mats.pushMatrix(MatrixStack::MODELVIEW);
                 mats.translate(l.pos);
                 mats.scale(l.size, l.size, l.size);
                 mats.matrixToUniform(MatrixStack::MODELVIEW);
-                mats.matrixToUniform(MatrixStack::PROJECTION);
+                glUniform1f(2, (i==closestLight) ? 1.0f : 0);
                 lightMesh->draw();
                 mats.popMatrix(MatrixStack::MODELVIEW);
             }

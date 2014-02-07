@@ -13,10 +13,14 @@
 extern PFNGLBINDBUFFERPROC glBindBuffer;
 extern PFNGLGENBUFFERSPROC glGenBuffers;
 extern PFNGLBUFFERDATAPROC glBufferData;
+extern PFNGLBUFFERSUBDATAPROC glBufferSubData;
 extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 
-// indexed buffer objects
+// indexed buffer objects (for uniform buffers and transform feedback)
 extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
+
+// texture buffer objects
+extern PFNGLTEXBUFFERRANGEPROC glTexBufferRange;
 
 // vertex attributes
 extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
