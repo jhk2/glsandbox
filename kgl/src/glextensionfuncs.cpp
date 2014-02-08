@@ -63,6 +63,9 @@ PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 // reading back uniforms
 PFNGLGETUNIFORMUIVPROC glGetUniformuiv;
 
+// MSAA/SSAA
+PFNGLMINSAMPLESHADINGPROC glMinSampleShading;
+
 // frame buffers and the like
 PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
 PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
@@ -167,6 +170,9 @@ void loadGLExtensions()
 	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) GETPROCADDR("glUniformMatrix4fv");
 	// reading back uniforms
 	glGetUniformuiv = (PFNGLGETUNIFORMUIVPROC) GETPROCADDR("glGetUniformuiv");
+
+    // MSAA/SSAA
+    glMinSampleShading = (PFNGLMINSAMPLESHADINGPROC) GETPROCADDR("glMinSampleShading");
 	
 	// frame buffers and the like
 	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");

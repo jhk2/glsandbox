@@ -21,7 +21,7 @@ MatrixStack mats;
 Matrix camMv;
 Matrix camPj;
 FirstPersonCamera cam;
-Framebuffer *fbuf; // final non-aa framebuffer
+Framebuffer *fbuf; // final compositing framebuffer
 Framebuffer *gbufs; // g-buffers for deferred
 WinGLBase *window;
 
@@ -70,13 +70,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     FramebufferParams params;
     params.width = window->getWidth();
     params.height = window->getHeight();
-    params.numSamples = 0;
+    params.numSamples = 4;
     params.numMrts = 1;
     params.colorEnable = true;
     params.depthEnable = true;
     params.format = GL_RGBA32F;
     params.depthFormat = GL_DEPTH_COMPONENT32F;
-    params.type = GL_TEXTURE_2D;
+    params.type = GL_TEXTURE_2D_MULTISAMPLE;
     params.filter = GL_LINEAR;
     fbuf = new Framebuffer(params);
 
@@ -87,6 +87,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // normals
     params.numMrts = 4;
     gbufs = new Framebuffer(params);
+
+    glEnable(GL_SAMPLE_SHADING);
+    glMinSampleShading(1.0); // force full supersampling
 
     Sampler smapRender;
     glSamplerParameteri(smapRender.getID(), GL_TEXTURE_COMPARE_MODE, GL_NONE);
@@ -429,7 +432,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        fbuf->blit(true, false);
+        fbuf->blit(true, false); // this should take care of SSAA resolve
         window->finishFrame();
         Sleep(1);
     }

@@ -64,6 +64,9 @@ extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 // reading back uniforms
 extern PFNGLGETUNIFORMUIVPROC glGetUniformuiv;
 
+// MSAA/SSAA
+extern PFNGLMINSAMPLESHADINGPROC glMinSampleShading;
+
 // frame buffers and the like
 extern PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
 extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;

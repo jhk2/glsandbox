@@ -19,11 +19,11 @@ void main() {
 
 #ifdef _FRAGMENT_
 
-uniform layout(binding = 0) sampler2D ambient_map;
-uniform layout(binding = 1) sampler2D diffuse_map;
-uniform layout(binding = 2) sampler2D specular_map;
-uniform layout(binding = 3) sampler2D normal_map;
-uniform layout(binding = 4) sampler2D depth_map;
+uniform layout(binding = 0) sampler2DMS ambient_map;
+uniform layout(binding = 1) sampler2DMS diffuse_map;
+uniform layout(binding = 2) sampler2DMS specular_map;
+uniform layout(binding = 3) sampler2DMS normal_map;
+uniform layout(binding = 4) sampler2DMS depth_map;
 
 uniform layout(binding = 5) samplerBuffer lights_buffer;
 uniform layout(location = 5) uint num_lights;
@@ -38,12 +38,13 @@ in vec2 out_Tex;
 out layout(location = 0) vec3 out_Color;
 
 void main() {
-    vec4 ambient_Color = texture(ambient_map, out_Tex);
-    vec4 diffuse_Color = texture(diffuse_map, out_Tex);
-    vec4 specular_Color = texture(specular_map, out_Tex);
-    vec3 view_Normal = texture(normal_map, out_Tex).xyz;
+    ivec2 i_Tex = ivec2(textureSize(ambient_map)*out_Tex);
+    vec4 ambient_Color = texelFetch(ambient_map, i_Tex, gl_SampleID);
+    vec4 diffuse_Color = texelFetch(diffuse_map, i_Tex, gl_SampleID);
+    vec4 specular_Color = texelFetch(specular_map, i_Tex, gl_SampleID);
+    vec3 view_Normal = texelFetch(normal_map, i_Tex, gl_SampleID).xyz;
 
-    float fragDepth = texture(depth_map, out_Tex).r;
+    float fragDepth = texelFetch(depth_map, i_Tex, gl_SampleID).r;
     vec3 start_Pos = vec3(out_Tex, fragDepth);
     vec3 ndc_Pos = (2.0 * start_Pos) - 1.0;
     vec4 unproject = inverse(camPjMatrix) * vec4(ndc_Pos, 1.0);
@@ -96,9 +97,8 @@ void main() {
     }
     out_Color = diffuseColor * diffuse_Color.rgb + specularColor * specular_Color.rgb;
 
-    //out_Color = view_Normal;
     //out_Color = vec4(texture(depth_map, out_Tex).rgb, 1.0);
-    gl_FragDepth = texture(depth_map, out_Tex).r;
+    gl_FragDepth = fragDepth;
 }
 
 #endif // _FRAGMENT_
