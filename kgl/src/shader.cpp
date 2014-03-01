@@ -95,6 +95,15 @@ GLuint Shader::getUniformBlockIndex(const GLchar *blockName) const
         printf("Shader log:\n%s", infoLog); fflush(stdout);
 }
 
+/*static*/ void Shader::printProgramLog(const GLuint id)
+{
+    int infoLogLength = 0;
+    char infoLog[1024];
+    glGetProgramInfoLog(id, 1024, &infoLogLength, infoLog);
+    if (infoLogLength > 0)
+        printf("Program log:\n%s", infoLog); fflush(stdout);
+}
+
 ShaderProgram::ShaderProgram(const char *filename, const unsigned int stages)
 {
     loadShaderProgram(filename, stages);
@@ -124,14 +133,15 @@ void ShaderProgram::loadShaderProgram(const char *sourceFile, const unsigned int
     // you MUST have at least a vertex and fragment shader,
     // or have ONLY a compute shader
     if (stages & VERTEX_SHADER)	loadShader(sourceFile, GL_VERTEX_SHADER);
-    if (stages & FRAGMENT_SHADER)	loadShader(sourceFile, GL_FRAGMENT_SHADER);
-    if (stages & GEOMETRY_SHADER)	loadShader(sourceFile, GL_GEOMETRY_SHADER);
+    if (stages & FRAGMENT_SHADER) loadShader(sourceFile, GL_FRAGMENT_SHADER);
+    if (stages & GEOMETRY_SHADER) loadShader(sourceFile, GL_GEOMETRY_SHADER);
     if (stages & TESSELLATION_SHADER) {
         loadShader(sourceFile, GL_TESS_CONTROL_SHADER);
         loadShader(sourceFile, GL_TESS_EVALUATION_SHADER);
     }
-    if(stages & COMPUTE_SHADER) loadShader(sourceFile, GL_COMPUTE_SHADER);
+    if (stages & COMPUTE_SHADER) loadShader(sourceFile, GL_COMPUTE_SHADER);
     glLinkProgram(program_id_);
+    printProgramLog(program_id_);
 }
 
 ShaderPipeline::ShaderPipeline(const char *filename, const unsigned int stages)

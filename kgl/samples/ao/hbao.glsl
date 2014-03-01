@@ -44,10 +44,12 @@ out vec4 out_Color;
 #define SCALE 1.0
 #define TANGENT_BIAS 0.2
 
+/*
 float filter(float x)
 {
     return max(0, 1.0 - x*x);
 }
+*/
 
 // HBAO paper http://rdimitrov.twistedsanity.net/HBAO_SIGGRAPH08.pdf
 // HBAO SIGGRAPH presentation http://developer.download.nvidia.com/presentations/2008/SIGGRAPH/HBAO_SIG08b.pdf

@@ -48,6 +48,8 @@ class Shader
 		void loadShader(const char *sourceFile, const GLenum type);
 		// prints the compiler log for a single shader
 		static void printShaderLog(const GLuint id);
+        // prints the compiler log for the whole program
+        static void printProgramLog(const GLuint id);
 		GLuint program_id_;
 };
 

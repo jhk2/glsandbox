@@ -1,0 +1,5 @@
+set(EXTRAS deferredprepass.glsl deferredrender.glsl light.glsl)
+add_executable(deferred WIN32 main.cpp ${EXTRAS})
+set_target_properties(deferred PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
+set_target_properties(deferred PROPERTIES OUTPUT_NAME deferred)
+target_link_libraries(deferred ${CLUSTERED_LIBS})

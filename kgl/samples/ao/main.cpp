@@ -75,8 +75,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     window->showWindow(nShowCmd);
 
     glDebugMessageCallbackARB(errorCallback, NULL);
-//    glEnable(GL_DEBUG_OUTPUT);
-//    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	// NSIGHT doesn't support this
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     cam.setPos(fl3(0, 10, 10));
 
@@ -267,6 +268,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glBindImageTexture(1, fbuf->getColorID(0), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
             blur.use();
             const int2 computeSize = int2(ceil(window->getWidth() / 16.0), ceil(window->getHeight() / 16.0));
+            // NSIGHT doesn't support this
             glDispatchCompute(computeSize.x, computeSize.y, 1);
             glBindImageTexture(0, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
             glBindImageTexture(1, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);

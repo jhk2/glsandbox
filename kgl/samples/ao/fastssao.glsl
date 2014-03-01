@@ -55,10 +55,12 @@ const vec3 taps[16] = { vec3(-0.364452, -0.014985, -0.513535),
 #define THRESHOLD 0.1
 #define SCALE 1.0
 
+/*
 float filter(float x)
 {
     return max(0, 1.0 - x*x);
 }
+*/
 
 void main()
 {

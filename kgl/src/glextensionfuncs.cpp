@@ -19,6 +19,8 @@ PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 
 // texture buffer objects
+PFNGLTEXBUFFERPROC glTexBuffer;
+// NSIGHT doesn't support this
 PFNGLTEXBUFFERRANGEPROC glTexBufferRange;
 
 // vertex attributes
@@ -35,6 +37,7 @@ PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 
 // shader compilation/use
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLSHADERSOURCEPROC glShaderSource;
 PFNGLCOMPILESHADERPROC glCompileShader;
@@ -106,6 +109,7 @@ PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 PFNGLPATCHPARAMETERIPROC glPatchParameteri;
 
 // compute shader
+// NSIGHT doesn't support this
 PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
 
 // color clamping
@@ -127,6 +131,8 @@ void loadGLExtensions()
 	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC) GETPROCADDR("glBindBufferBase");
 
     // texture buffer objects
+	glTexBuffer = (PFNGLTEXBUFFERPROC) GETPROCADDR("glTexBuffer");
+    // NSIGHT doesn't support this
     glTexBufferRange = (PFNGLTEXBUFFERRANGEPROC) GETPROCADDR("glTexBufferRange");
 	
 	// vertex attributes
@@ -143,6 +149,7 @@ void loadGLExtensions()
 	
 	// shader compilation/use
 	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) GETPROCADDR("glGetShaderInfoLog");
+    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC) GETPROCADDR("glGetProgramInfoLog");
 	glCreateShader = (PFNGLCREATESHADERPROC) GETPROCADDR("glCreateShader");
 	glShaderSource = (PFNGLSHADERSOURCEPROC) GETPROCADDR("glShaderSource");
 	glCompileShader = (PFNGLCOMPILESHADERPROC) GETPROCADDR("glCompileShader");
@@ -215,6 +222,7 @@ void loadGLExtensions()
 	glPatchParameteri = (PFNGLPATCHPARAMETERIPROC) GETPROCADDR("glPatchParameteri");
 
     // compute shader
+	// NSIGHT doesn't support this
     glDispatchCompute = (PFNGLDISPATCHCOMPUTEPROC) GETPROCADDR("glDispatchCompute");
 	
 	// color clamping

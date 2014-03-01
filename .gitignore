@@ -28,4 +28,8 @@ assets/
 
 # cmake user stuff
 kgl-build/
+kgl-msvc-build/
 CMakeLists.txt.user
+
+# NSight stuff
+nsight_profiler.cfg

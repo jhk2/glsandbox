@@ -31,7 +31,7 @@ const ivec2 offset [9] = { ivec2(-1,1),   ivec2(0,1),     ivec2(1,1),
                      ivec2(-1,-1),  ivec2(0,-1),    ivec2(1,-1) };
 
 // box filter
-float filter(vec2 pos)
+float filterBox(vec2 pos)
 {
     float total = 0.0f;
     for (uint i = 0; i < 9; i++) {
@@ -44,7 +44,7 @@ float filter(vec2 pos)
 
 void main()
 {
-    out_Color = vec4(filter(out_Tex), 0, 0, 1.0);
+    out_Color = vec4(filterBox(out_Tex), 0, 0, 1.0);
 }
 
 #endif

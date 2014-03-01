@@ -20,6 +20,8 @@ extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 
 // texture buffer objects
+extern PFNGLTEXBUFFERPROC glTexBuffer;
+// NSIGHT doesn't support this
 extern PFNGLTEXBUFFERRANGEPROC glTexBufferRange;
 
 // vertex attributes
@@ -36,6 +38,7 @@ extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 
 // shader compilation/use
 extern PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 extern PFNGLCREATESHADERPROC glCreateShader;
 extern PFNGLSHADERSOURCEPROC glShaderSource;
 extern PFNGLCOMPILESHADERPROC glCompileShader;
@@ -117,6 +120,7 @@ extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
 extern PFNGLPATCHPARAMETERIPROC glPatchParameteri;
 
 // compute shader
+// NSIGHT doesn't support this
 extern PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
 
 // debugging with ARB_DEBUG_OUTPUT

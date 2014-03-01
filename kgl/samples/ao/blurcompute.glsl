@@ -19,7 +19,7 @@ ivec2 clampLocation(ivec2 input)
     return clamp(input, ivec2(0,0), imageSize(in_Image)); // assuming that in/out images are same size
 }
 
-float filter(uint x, uint y) {
+float filterBox(uint x, uint y) {
     return 1.0 / (FILTER_SIZE * FILTER_SIZE);
 }
 
@@ -49,7 +49,7 @@ void main()
     for (uint i = 0; i < FILTER_SIZE; i++) {
         for (uint j = 0; j < FILTER_SIZE; j++) {
             const ivec2 offset = ivec2(j, i) - filterOffset; // go from -filtersize/2 to +filtersize/2 both ways
-            total += neighborhood[shared_pixel.x + offset.x][shared_pixel.y + offset.y] * filter(j, i);
+            total += neighborhood[shared_pixel.x + offset.x][shared_pixel.y + offset.y] * filterBox(j, i);
         }
     }
     // the ao data is only in red channel, but make it all channels just to look nice for now

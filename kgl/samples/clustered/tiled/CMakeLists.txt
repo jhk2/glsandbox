@@ -1,0 +1,5 @@
+set(EXTRAS tiledprepass.glsl tiledrender.glsl light.glsl tiledcompute.glsl)
+add_executable(tiled WIN32 main.cpp ${EXTRAS})
+set_target_properties(tiled PROPERTIES RUNTIME_OUTPUT_DIRECTORY .)
+set_target_properties(tiled PROPERTIES OUTPUT_NAME tiled)
+target_link_libraries(tiled ${CLUSTERED_LIBS})

@@ -56,13 +56,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     window->addMessageHandler(WM_SIZE, OnResize);
     window->showWindow(nShowCmd);
     glDebugMessageCallbackARB(errorCallback, NULL);
+	// NSIGHT doesn't support this
     glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     cam.setPos(fl3(0, 10, 10));
 
-    ShaderProgram dprepass ("deferredprepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-    ShaderProgram drender ("deferredrender.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram dprepass ("tiledprepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram drender ("tiledrender.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
+    ShaderProgram tileCompute ("tiledcompute.glsl", Shader::COMPUTE_SHADER);
     ShaderProgram lightRender ("light.glsl", Shader::VERTEX_SHADER | Shader::TESSELLATION_SHADER | Shader::GEOMETRY_SHADER | Shader::FRAGMENT_SHADER);
 
     mats.initUniformLocs(0,1);
@@ -70,13 +72,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     FramebufferParams params;
     params.width = window->getWidth();
     params.height = window->getHeight();
-    params.numSamples = 4;
+    params.numSamples = 1;
     params.numMrts = 1;
     params.colorEnable = true;
     params.depthEnable = true;
     params.format = GL_RGBA32F;
     params.depthFormat = GL_DEPTH_COMPONENT32F;
-    params.type = GL_TEXTURE_2D_MULTISAMPLE;
+    params.type = GL_TEXTURE_2D;
     params.filter = GL_LINEAR;
     fbuf = new Framebuffer(params);
 
@@ -86,6 +88,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // specular color
     // normals
     params.numMrts = 4;
+    params.type = GL_TEXTURE_2D_MULTISAMPLE;
     gbufs = new Framebuffer(params);
 
     glEnable(GL_SAMPLE_SHADING);
@@ -121,8 +124,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     gquad.addAttrib(0, AttributeInfoSpec<GLfloat>(3)).addAttrib(1, AttributeInfoSpec<GLfloat>(3)).addAttrib(2, AttributeInfoSpec<GLfloat>(3));
     gquad.addVerts(gverts).addInds(inds).finalize();
 
-    Obj testobj ("../assets/ServerBot1.obj");
-
+    Obj testobj ("../../assets/ServerBot1.obj");
     Mesh<GLubyte> *lightMesh = createIcosahedron(true);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     int closestLight = -1;
@@ -153,7 +155,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
 
-    Texture tex ("../assets/white.png");
+    // create texture buffer for light index lists and texture image for light grid
+    GLuint lightIndexListsBuffer;
+    GLuint lightIndexListsTex;
+    GLuint lightGridTex;
+    const int2 tileSize (32, 32); // constant size for tiles in pixels
+    // how many tiles are there in the image?
+    const unsigned int numTilesX = (gbufs->getWidth() + tileSize.x - 1) / tileSize.x;
+    const unsigned int numTilesY = (gbufs->getHeight() + tileSize.y - 1) / tileSize.y;
+    {
+        glGenBuffers(1, &lightIndexListsBuffer);
+        glBindBuffer(GL_TEXTURE_BUFFER, lightIndexListsBuffer);
+        // max size of light index lists is number of tiles * number of lights total
+        // light indices must be able to hold the total number of lights, so we will use 8 bits for now (up to 256 lights)
+        const unsigned int bufferSize = 1*lights.size()*numTilesX*numTilesY;
+        glBufferData(GL_TEXTURE_BUFFER, bufferSize, 0, GL_DYNAMIC_READ);
+        glGenTextures(1, &lightIndexListsTex);
+        glBindTexture(GL_TEXTURE_BUFFER, lightIndexListsTex);
+        glTexBufferRange(GL_TEXTURE_BUFFER, GL_R8UI, lightIndexListsBuffer, 0, bufferSize);
+        glBindBuffer(GL_TEXTURE_BUFFER, 0);
+        glBindTexture(GL_TEXTURE_BUFFER, 0);
+
+        // now make the light grid texture
+        glGenTextures(1, &lightGridTex);
+        glBindTexture(GL_TEXTURE_2D, lightGridTex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8UI, numTilesX, numTilesY, 0, GL_RG_INTEGER, GL_UNSIGNED_BYTE, 0);
+    }
 
     glFrontFace(GL_CCW);
     glEnable(GL_CULL_FACE);
@@ -188,23 +215,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             mpos *= 2;
             mpos -= fl2(1,1);
             mpos.y *= -1;
-            // now calculate the ray params according to relative FOV
-            // this is slightly inaccurate, switching to matrix operations
-            const float FOV_X = FOV_Y * window->getWidth() / (float) window->getHeight();
-            /*
-            fl3 ray;
-            float cosfovx = cos(0.5 * mpos.x * DEGTORAD(FOV_X));
-            ray.x = sin(0.5 * mpos.x * DEGTORAD(FOV_X));
-            ray.y = sin(0.5 * mpos.y * DEGTORAD(FOV_Y)) / cos(0.5 * mpos.y * DEGTORAD(FOV_Y));
-            ray.z = -cosfovx;
-            ray.normalize();
-            printf("ray1: %g, %g, %g\n", ray.x, ray.y, ray.z); fflush(stdout);
-            */
 
             // see http://antongerdelan.net/opengl/raycasting.html
             // transform to homogeneous clip coordinates
-            //float ray_clip [4];
-            //ray_clip[0] = mpos.x; ray_clip[1] = mpos.y; ray_clip[2] = -1.0f; ray_clip[3] = 1.0f;
             fl3 ray_clip;
             ray_clip.x = mpos.x; ray_clip.y = mpos.y; ray_clip.z = -1.0f;
             // transform to camera/eye space
@@ -212,7 +225,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             camPj.getInverse(invproj);
             fl3 ray = invproj.multiplyPoint(ray_clip);
             ray.normalize();
-            //printf("ray2: %g, %g, %g\n", ray.x, ray.y, ray.z); fflush(stdout);
 
             if (window->isMousePress(MOUSE_LEFT)) {
                 float closest = FLT_MAX; // distance along ray to closest light, start at max positive value
@@ -249,44 +261,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                             originalCenter = li.pos;
                         }
                         // we have an intersection and it's the closest light found so far
-
                     }
-                    /*
-                    // the math for this isn't working right, but leaving it here in case of revisit in the future
-                    // need to calculate the screen space extents of the light
-                    // start with the center point of the light, and find its screen space position
-                    cam.toMatrixAll(mats);
-                    mats.copy(MatrixStack::MODELVIEW, camMv);
-                    fl3 sspos = camMv.multiplyPoint(li.pos);
-                    const float z = sspos.z;
-                    mats.copy(MatrixStack::PROJECTION, camMv);
-                    sspos = camMv.multiplyPoint(sspos);
-                    // transform to normalized window coordinates by negating y, adding 1 and scaling by 0.5
-                    sspos.y *= -1.f;
-                    sspos += fl3(1,1,0);
-                    sspos *= fl3(0.5f, 0.5f, 0);
-                    //printf("light position is %g, %g\n", sspos.x, sspos.y);
-                    //printf("mouse position is %g, %g\n", window->getMouseNormPos().x, window->getMouseNormPos().y);
-                    //fflush(stdout);
-
-                    // now to find light's extents onscreen at the given distance from camera
-                    // we define the vertical FOV
-                    // then we know the total viewable range at the given distance
-                    float totalview = 2 * -z * tan(0.5 * RADTODEG(FOV_Y));
-                    // then we divide the radius by that total amount to find the fraction of the screen taken up by that radius
-                    float rscaled = li.size / totalview;
-
-                    // then calculate the distance from the mouse pointer to the light center
-                    const fl2 &mpos = window->getMouseNormPos();
-                    const fl3 mtol = sspos - fl3(mpos.x, mpos.y, 0);
-                    const float mdist = mtol.length();
-
-                    printf("mouse distance to light: %g, scaled radius: %g\n", mdist, rscaled);
-                    fflush(stdout);
-
-                    //printf("light radius in y pixels (%u): %g\n", window->getHeight(), rscaled * window->getHeight());
-                    //fflush(stdout);
-                    */
                 }
                 // now we should have the closest light to the camera which was moused over
             }
@@ -303,23 +278,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 // need to update the corresponding light data in the GPU buffer
                 glBindBuffer(GL_TEXTURE_BUFFER, lightsBuf);
                 glBufferSubData(GL_TEXTURE_BUFFER, sizeof(Light)*closestLight, sizeof(fl3), &li.pos);
-
-                /* switching from dxdy implementation to matrix backprojection method
-                const fl2 dxdy = window->getMouseNorm_dxdy();
-                // we want to move y along the up vector and move x along our generated ray cross up vector
-                const fl3 ytrans = cam.getUp();
-                const fl3 xtrans = fl3::cross(cam.getLook(), ytrans);
-                Light &li = lights.at(closestLight);
-                //printf("moving light index %i, dxdy=%g,%g\n", closestLight, dxdy.x, dxdy.y);
-                // TODO: up vector is incorrect when looking in from the side
-                //printf("xtrans: %g,%g,%g; ytrans: %g,%g,%g\n", xtrans.x, xtrans.y, xtrans.z, ytrans.x, ytrans.y, ytrans.z);
-                //printf("position before: %g,%g,%g\n", li.pos.x, li.pos.y, li.pos.z);
-                const float scalex = 2 * closestDepth * tan(DEGTORAD(FOV_X/2.0f));
-                const float scaley = 2 * closestDepth * tan(DEGTORAD(FOV_Y/2.0f));
-                li.pos += (xtrans * dxdy.x * scalex) + (ytrans * -dxdy.y * scaley);
-                //printf("position after: %g,%g,%g\n", li.pos.x, li.pos.y, li.pos.z);
-                fflush(stdout);
-                */
             }
         }
         if (window->isMouseRelease(MOUSE_LEFT)) {
@@ -352,8 +310,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // now do GL stuff
+
+        // g-buffer pass
         {
-            // g-buffer pass
             gbufs->bind();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);
@@ -362,7 +321,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);
             testobj.draw(dprepass);
+            mats.pushMatrix(MatrixStack::MODELVIEW);
+            mats.translate(10, 0, 0);
+            mats.matrixToUniform(MatrixStack::MODELVIEW);
+            testobj.draw(dprepass);
+            mats.popMatrix(MatrixStack::MODELVIEW);
             // g-buffers should be populated now
+            glUseProgram(0);
         }
 
         //glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -370,9 +335,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         {
             fbuf->bind();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            mats.loadIdentity(MatrixStack::MODELVIEW);
-            mats.loadIdentity(MatrixStack::PROJECTION);
-            mats.ortho(0, 1, 0, 1);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
             glActiveTexture(GL_TEXTURE0);
             gbufs->bindColorTexture(0);
             glActiveTexture(GL_TEXTURE1);
@@ -387,13 +351,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glActiveTexture(GL_TEXTURE5);
             glBindTexture(GL_TEXTURE_BUFFER, lightsTex);
 
-            drender.use();
+            glBindImageTexture(0, fbuf->getColorID(0), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+            glBindImageTexture(1, fbuf->getDepthID(), 0, false, 0, GL_WRITE_ONLY, GL_R32F);
+
+            tileCompute.use();
             glUniform1ui(5, lights.size());
-            mats.matrixToUniform(MatrixStack::MODELVIEW);
-            mats.matrixToUniform(MatrixStack::PROJECTION);
             glUniformMatrix4fv(3, 1, false, camMv.data());
             glUniformMatrix4fv(4, 1, false, camPj.data());
-            quad.draw();
+            glDispatchCompute(numTilesX, numTilesY, 1);
+            glUseProgram(0);
+
+            glBindImageTexture(0, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(1, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
 
             glBindTexture(GL_TEXTURE_BUFFER, 0);
             glActiveTexture(GL_TEXTURE4);
@@ -407,13 +376,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glBindTexture(GL_TEXTURE_2D, 0);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, 0);
+        }
 
-            // another way to transfer depth data
-            //gbufs->blit(*fbuf, false, true);
-            //fbuf->bind();
-
-            glEnable(GL_DEPTH_TEST);
+        {
             // add the markers for lights
+            glEnable(GL_DEPTH_TEST);
+            fbuf->bind();
             lightRender.use();
             mats.loadIdentity(MatrixStack::MODELVIEW);
             mats.loadIdentity(MatrixStack::PROJECTION);
@@ -429,9 +397,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 lightMesh->draw();
                 mats.popMatrix(MatrixStack::MODELVIEW);
             }
+            glUseProgram(0);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         fbuf->blit(true, false); // this should take care of SSAA resolve
         window->finishFrame();
         Sleep(1);
