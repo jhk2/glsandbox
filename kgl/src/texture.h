@@ -15,20 +15,20 @@
 
 class Texture
 {
-	public:
-		Texture(const char *filename, bool mipmap = false);	
-		Texture(const Texture &other);
-		virtual ~Texture();
-		void bind(GLenum target = GL_TEXTURE_2D);
-		void bindToImage(GLuint unit, GLenum access, GLenum format, GLuint level = 0);
-		GLuint getID();
-	private:
-		bool init(const char *filename);
-		bool loadPng(const char *filename);
-		bool loadJpg(const char *filename);
-		void sendGL(const GLvoid *data);
+public:
+    Texture(const char *filename, bool mipmap = false);
+    Texture(const Texture &other);
+    virtual ~Texture();
+    void bind(GLenum target = GL_TEXTURE_2D);
+    void bindToImage(GLuint unit, GLenum access, GLenum format, GLuint level = 0);
+    GLuint getID();
+private:
+    bool init(const char *filename);
+    bool loadPng(const char *filename);
+    bool loadJpg(const char *filename);
+    void sendGL(const GLvoid *data);
 
-		GLuint id_;
-		int2 dims_;
+    GLuint id_;
+    int2 dims_;
 };
 #endif // TEXTURE_H

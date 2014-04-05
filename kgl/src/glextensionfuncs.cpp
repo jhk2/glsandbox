@@ -120,114 +120,114 @@ PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
 
 void loadGLExtensions()
 {	
-	// vertex buffers
-	glBindBuffer = (PFNGLBINDBUFFERPROC) GETPROCADDR("glBindBuffer");
-	glGenBuffers = (PFNGLGENBUFFERSPROC) GETPROCADDR("glGenBuffers");
-	glBufferData = (PFNGLBUFFERDATAPROC) GETPROCADDR("glBufferData");
+    // vertex buffers
+    glBindBuffer = (PFNGLBINDBUFFERPROC) GETPROCADDR("glBindBuffer");
+    glGenBuffers = (PFNGLGENBUFFERSPROC) GETPROCADDR("glGenBuffers");
+    glBufferData = (PFNGLBUFFERDATAPROC) GETPROCADDR("glBufferData");
     glBufferSubData = (PFNGLBUFFERSUBDATAPROC) GETPROCADDR("glBufferSubData");
-	glDeleteBuffers = (PFNGLDELETEBUFFERSPROC) GETPROCADDR("glDeleteBuffers");
-	
+    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC) GETPROCADDR("glDeleteBuffers");
+
     // indexed buffer objects (for uniform buffers and transform feedback)
-	glBindBufferBase = (PFNGLBINDBUFFERBASEPROC) GETPROCADDR("glBindBufferBase");
+    glBindBufferBase = (PFNGLBINDBUFFERBASEPROC) GETPROCADDR("glBindBufferBase");
 
     // texture buffer objects
-	glTexBuffer = (PFNGLTEXBUFFERPROC) GETPROCADDR("glTexBuffer");
+    glTexBuffer = (PFNGLTEXBUFFERPROC) GETPROCADDR("glTexBuffer");
     // NSIGHT doesn't support this
     glTexBufferRange = (PFNGLTEXBUFFERRANGEPROC) GETPROCADDR("glTexBufferRange");
-	
-	// vertex attributes
-	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) GETPROCADDR("glEnableVertexAttribArray");
-	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) GETPROCADDR("glVertexAttribPointer");
-	glVertexAttribFormat = (PFNGLVERTEXATTRIBFORMATPROC) GETPROCADDR("glVertexAttribFormat");
-	glVertexAttribBinding = (PFNGLVERTEXATTRIBBINDINGPROC) GETPROCADDR("glVertexAttribBinding");
-	glBindVertexBuffer = (PFNGLBINDVERTEXBUFFERPROC) GETPROCADDR("glBindVertexBuffer");
-	
-	// vertex array objects
-	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC) GETPROCADDR("glGenVertexArrays");
-	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC) GETPROCADDR("glBindVertexArray");
-	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC) GETPROCADDR("glDeleteVertexArrays");
-	
-	// shader compilation/use
-	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) GETPROCADDR("glGetShaderInfoLog");
+
+    // vertex attributes
+    glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) GETPROCADDR("glEnableVertexAttribArray");
+    glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC) GETPROCADDR("glVertexAttribPointer");
+    glVertexAttribFormat = (PFNGLVERTEXATTRIBFORMATPROC) GETPROCADDR("glVertexAttribFormat");
+    glVertexAttribBinding = (PFNGLVERTEXATTRIBBINDINGPROC) GETPROCADDR("glVertexAttribBinding");
+    glBindVertexBuffer = (PFNGLBINDVERTEXBUFFERPROC) GETPROCADDR("glBindVertexBuffer");
+
+    // vertex array objects
+    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC) GETPROCADDR("glGenVertexArrays");
+    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC) GETPROCADDR("glBindVertexArray");
+    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC) GETPROCADDR("glDeleteVertexArrays");
+
+    // shader compilation/use
+    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) GETPROCADDR("glGetShaderInfoLog");
     glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC) GETPROCADDR("glGetProgramInfoLog");
-	glCreateShader = (PFNGLCREATESHADERPROC) GETPROCADDR("glCreateShader");
-	glShaderSource = (PFNGLSHADERSOURCEPROC) GETPROCADDR("glShaderSource");
-	glCompileShader = (PFNGLCOMPILESHADERPROC) GETPROCADDR("glCompileShader");
-	glCreateProgram = (PFNGLCREATEPROGRAMPROC) GETPROCADDR("glCreateProgram");
-	glDeleteProgram = (PFNGLDELETEPROGRAMPROC) GETPROCADDR("glDeleteProgram");
-	glLinkProgram = (PFNGLLINKPROGRAMPROC) GETPROCADDR("glLinkProgram");
-	glAttachShader = (PFNGLATTACHSHADERPROC) GETPROCADDR("glAttachShader");
-	glUseProgram = (PFNGLUSEPROGRAMPROC) GETPROCADDR("glUseProgram");
-	glDetachShader = (PFNGLDETACHSHADERPROC) GETPROCADDR("glDetachShader");
-	glDeleteShader = (PFNGLDELETESHADERPROC) GETPROCADDR("glDeleteShader");
-	glValidateProgram = (PFNGLVALIDATEPROGRAMPROC) GETPROCADDR("glValidateProgram");
-	glValidateProgramPipeline = (PFNGLVALIDATEPROGRAMPIPELINEPROC) GETPROCADDR("glValidateProgramPipeline");
-	// program pipeline objects
-	glGenProgramPipelines = (PFNGLGENPROGRAMPIPELINESPROC) GETPROCADDR("glGenProgramPipelines");
-	glDeleteProgramPipelines = (PFNGLDELETEPROGRAMPIPELINESPROC) GETPROCADDR("glDeleteProgramPipelines");
-	glBindProgramPipeline = (PFNGLBINDPROGRAMPIPELINEPROC) GETPROCADDR("glBindProgramPipeline");
-	// uniform variables
-	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) GETPROCADDR("glGetUniformLocation");
-	glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glUniform1ui");
-	glUniform1i = (PFNGLUNIFORM1IPROC) GETPROCADDR("glUniform1i");
-	glUniform1f = (PFNGLUNIFORM1FPROC) GETPROCADDR("glUniform1f");
-	glUniform3fv = (PFNGLUNIFORM3FVPROC) GETPROCADDR("glUniform3fv");
-	glGetUniformBlockIndex = (PFNGLGETUNIFORMBLOCKINDEXPROC) GETPROCADDR("glGetUniformBlockIndex");
-	// matrix operations
-	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) GETPROCADDR("glUniformMatrix4fv");
-	// reading back uniforms
-	glGetUniformuiv = (PFNGLGETUNIFORMUIVPROC) GETPROCADDR("glGetUniformuiv");
+    glCreateShader = (PFNGLCREATESHADERPROC) GETPROCADDR("glCreateShader");
+    glShaderSource = (PFNGLSHADERSOURCEPROC) GETPROCADDR("glShaderSource");
+    glCompileShader = (PFNGLCOMPILESHADERPROC) GETPROCADDR("glCompileShader");
+    glCreateProgram = (PFNGLCREATEPROGRAMPROC) GETPROCADDR("glCreateProgram");
+    glDeleteProgram = (PFNGLDELETEPROGRAMPROC) GETPROCADDR("glDeleteProgram");
+    glLinkProgram = (PFNGLLINKPROGRAMPROC) GETPROCADDR("glLinkProgram");
+    glAttachShader = (PFNGLATTACHSHADERPROC) GETPROCADDR("glAttachShader");
+    glUseProgram = (PFNGLUSEPROGRAMPROC) GETPROCADDR("glUseProgram");
+    glDetachShader = (PFNGLDETACHSHADERPROC) GETPROCADDR("glDetachShader");
+    glDeleteShader = (PFNGLDELETESHADERPROC) GETPROCADDR("glDeleteShader");
+    glValidateProgram = (PFNGLVALIDATEPROGRAMPROC) GETPROCADDR("glValidateProgram");
+    glValidateProgramPipeline = (PFNGLVALIDATEPROGRAMPIPELINEPROC) GETPROCADDR("glValidateProgramPipeline");
+    // program pipeline objects
+    glGenProgramPipelines = (PFNGLGENPROGRAMPIPELINESPROC) GETPROCADDR("glGenProgramPipelines");
+    glDeleteProgramPipelines = (PFNGLDELETEPROGRAMPIPELINESPROC) GETPROCADDR("glDeleteProgramPipelines");
+    glBindProgramPipeline = (PFNGLBINDPROGRAMPIPELINEPROC) GETPROCADDR("glBindProgramPipeline");
+    // uniform variables
+    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) GETPROCADDR("glGetUniformLocation");
+    glUniform1ui = (PFNGLUNIFORM1UIPROC) GETPROCADDR("glUniform1ui");
+    glUniform1i = (PFNGLUNIFORM1IPROC) GETPROCADDR("glUniform1i");
+    glUniform1f = (PFNGLUNIFORM1FPROC) GETPROCADDR("glUniform1f");
+    glUniform3fv = (PFNGLUNIFORM3FVPROC) GETPROCADDR("glUniform3fv");
+    glGetUniformBlockIndex = (PFNGLGETUNIFORMBLOCKINDEXPROC) GETPROCADDR("glGetUniformBlockIndex");
+    // matrix operations
+    glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) GETPROCADDR("glUniformMatrix4fv");
+    // reading back uniforms
+    glGetUniformuiv = (PFNGLGETUNIFORMUIVPROC) GETPROCADDR("glGetUniformuiv");
 
     // MSAA/SSAA
     glMinSampleShading = (PFNGLMINSAMPLESHADINGPROC) GETPROCADDR("glMinSampleShading");
-	
-	// frame buffers and the like
-	glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");
-	glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) GETPROCADDR("glGenFramebuffers");
-	glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) GETPROCADDR("glBindFramebuffer");
-	glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) GETPROCADDR("glDeleteFramebuffers");
-	glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) GETPROCADDR("glFramebufferTexture2D");
-	glFramebufferTextureLayer = (PFNGLFRAMEBUFFERTEXTURELAYERPROC) GETPROCADDR("glFramebufferTextureLayer");
-	glFramebufferTexture = (PFNGLFRAMEBUFFERTEXTUREPROC) GETPROCADDR("glFramebufferTexture");
-	glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC) GETPROCADDR("glBlitFramebuffer");
-	glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) GETPROCADDR("glCheckFramebufferStatus");
-	glFramebufferParameteri = (PFNGLFRAMEBUFFERPARAMETERIPROC) GETPROCADDR("glFramebufferParameteri");
+
+    // frame buffers and the like
+    glBindFragDataLocation = (PFNGLBINDFRAGDATALOCATIONPROC) GETPROCADDR("glBindFragDataLocation");
+    glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) GETPROCADDR("glGenFramebuffers");
+    glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) GETPROCADDR("glBindFramebuffer");
+    glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC) GETPROCADDR("glDeleteFramebuffers");
+    glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) GETPROCADDR("glFramebufferTexture2D");
+    glFramebufferTextureLayer = (PFNGLFRAMEBUFFERTEXTURELAYERPROC) GETPROCADDR("glFramebufferTextureLayer");
+    glFramebufferTexture = (PFNGLFRAMEBUFFERTEXTUREPROC) GETPROCADDR("glFramebufferTexture");
+    glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC) GETPROCADDR("glBlitFramebuffer");
+    glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) GETPROCADDR("glCheckFramebufferStatus");
+    glFramebufferParameteri = (PFNGLFRAMEBUFFERPARAMETERIPROC) GETPROCADDR("glFramebufferParameteri");
     glDrawBuffers = (PFNGLDRAWBUFFERSPROC) GETPROCADDR("glDrawBuffers");
 
-	// renderbuffers (unused)
-	/*
-	glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) GETPROCADDR("glGenRenderbuffers");
-	glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) GETPROCADDR("glBindRenderbuffer");
-	glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) GETPROCADDR("glDeleteRenderbuffers");
-	glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC) GETPROCADDR("glRenderbufferStorageMultisample");
-	glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) GETPROCADDR("glFramebufferRenderbuffer");
-	*/
-	
-	// textures
-	glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
-	glTexImage3D = (PFNGLTEXIMAGE3DPROC) GETPROCADDR("glTexImage3D");
-	glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC) GETPROCADDR("glTexImage2DMultisample");
-	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC) GETPROCADDR("glGenerateMipmap");
-	// samplers
-	glGenSamplers = (PFNGLGENSAMPLERSPROC) GETPROCADDR("glGenSamplers");
-	glDeleteSamplers = (PFNGLDELETESAMPLERSPROC) GETPROCADDR("glDeleteSamplers");
-	glBindSampler = (PFNGLBINDSAMPLERPROC) GETPROCADDR("glBindSampler");
-	glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC) GETPROCADDR("glSamplerParameteri");
-	
-	// image units
-	glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC) GETPROCADDR("glBindImageTexture");
-	glMemoryBarrier = (PFNGLMEMORYBARRIERPROC) GETPROCADDR("glMemoryBarrier");
-	
-	// tessellation
-	glPatchParameteri = (PFNGLPATCHPARAMETERIPROC) GETPROCADDR("glPatchParameteri");
+    // renderbuffers (unused)
+    /*
+    glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC) GETPROCADDR("glGenRenderbuffers");
+    glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC) GETPROCADDR("glBindRenderbuffer");
+    glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC) GETPROCADDR("glDeleteRenderbuffers");
+    glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC) GETPROCADDR("glRenderbufferStorageMultisample");
+    glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) GETPROCADDR("glFramebufferRenderbuffer");
+    */
+
+    // textures
+    glActiveTexture = (PFNGLACTIVETEXTUREPROC) GETPROCADDR("glActiveTexture");
+    glTexImage3D = (PFNGLTEXIMAGE3DPROC) GETPROCADDR("glTexImage3D");
+    glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC) GETPROCADDR("glTexImage2DMultisample");
+    glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC) GETPROCADDR("glGenerateMipmap");
+    // samplers
+    glGenSamplers = (PFNGLGENSAMPLERSPROC) GETPROCADDR("glGenSamplers");
+    glDeleteSamplers = (PFNGLDELETESAMPLERSPROC) GETPROCADDR("glDeleteSamplers");
+    glBindSampler = (PFNGLBINDSAMPLERPROC) GETPROCADDR("glBindSampler");
+    glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC) GETPROCADDR("glSamplerParameteri");
+
+    // image units
+    glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC) GETPROCADDR("glBindImageTexture");
+    glMemoryBarrier = (PFNGLMEMORYBARRIERPROC) GETPROCADDR("glMemoryBarrier");
+
+    // tessellation
+    glPatchParameteri = (PFNGLPATCHPARAMETERIPROC) GETPROCADDR("glPatchParameteri");
 
     // compute shader
-	// NSIGHT doesn't support this
+    // NSIGHT doesn't support this
     glDispatchCompute = (PFNGLDISPATCHCOMPUTEPROC) GETPROCADDR("glDispatchCompute");
-	
-	// color clamping
-	glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");
-	
-	// debugging with ARB_DEBUG_OUTPUT
-	glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC) GETPROCADDR("glDebugMessageCallbackARB");
+
+    // color clamping
+    glClampColor = (PFNGLCLAMPCOLORPROC) GETPROCADDR("glClampColor");
+
+    // debugging with ARB_DEBUG_OUTPUT
+    glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC) GETPROCADDR("glDebugMessageCallbackARB");
 }

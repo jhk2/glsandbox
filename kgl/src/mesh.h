@@ -26,34 +26,34 @@ template<> struct GLTypeToEnum<GLubyte> { enum { value = GL_UNSIGNED_BYTE }; };
 // V is a custom vertex struct with all of the attributes defined in order
 template<typename V> class VertexBufferSpec
 {
-	public:
-		VertexBufferSpec() {}
-		virtual ~VertexBufferSpec() {}
-		const GLvoid* data() { return (GLvoid*) vertices_.data(); }
-		const unsigned int size() { return vertices_.size(); }
-		void addVerts(std::vector<V> &newverts) { vertices_.insert(vertices_.end(), newverts.begin(), newverts.end()); }
-		void addVert(V &newvert) { vertices_.push_back(newvert); }
-	private:
-		std::vector<V> vertices_;
+public:
+    VertexBufferSpec() {}
+    virtual ~VertexBufferSpec() {}
+    const GLvoid* data() { return (GLvoid*) vertices_.data(); }
+    const unsigned int size() { return vertices_.size(); }
+    void addVerts(std::vector<V> &newverts) { vertices_.insert(vertices_.end(), newverts.begin(), newverts.end()); }
+    void addVert(V &newvert) { vertices_.push_back(newvert); }
+private:
+    std::vector<V> vertices_;
 };
 
 // type erasure thing for generic vertex attributes
 struct AttributeInfoConcept
 {
-	AttributeInfoConcept(const unsigned int nc) : numComponents(nc) {}
-	virtual ~AttributeInfoConcept() {}
-	virtual GLenum name() = 0;
-	unsigned int numComponents; // number of components (>1 if the attribute is a vector)
-	virtual size_t getSize() = 0; // size of the entire attribute in bytes, used to calculate offsets
+    AttributeInfoConcept(const unsigned int nc) : numComponents(nc) {}
+    virtual ~AttributeInfoConcept() {}
+    virtual GLenum name() = 0;
+    unsigned int numComponents; // number of components (>1 if the attribute is a vector)
+    virtual size_t getSize() = 0; // size of the entire attribute in bytes, used to calculate offsets
 };
 
 // GL_TYPEDEF is the opengl typedef (e.g. GLuint, GLfloat)
 template<typename GL_TYPEDEF> struct AttributeInfoSpec : AttributeInfoConcept
 {
-	AttributeInfoSpec(const unsigned int nc) : AttributeInfoConcept(nc) {}
-	virtual ~AttributeInfoSpec() {}
-	GLenum name() { return GLTypeToEnum<GL_TYPEDEF>::value; }
-	size_t getSize() { return sizeof(GL_TYPEDEF) * numComponents; }
+    AttributeInfoSpec(const unsigned int nc) : AttributeInfoConcept(nc) {}
+    virtual ~AttributeInfoSpec() {}
+    GLenum name() { return GLTypeToEnum<GL_TYPEDEF>::value; }
+    size_t getSize() { return sizeof(GL_TYPEDEF) * numComponents; }
 };
 
 /*
@@ -67,141 +67,141 @@ template<typename GL_TYPEDEF> struct AttributeInfoSpec : AttributeInfoConcept
 template<typename I> // V is a custom vertex struct, I is the type of indices (unsigned int, short, etc)
 class Mesh
 {
-	public:
-		// attribInfo is a vector containing pairs of (attribute number, attribute info)
-		// it should have the same order as the attributes are defined in the custom vertex struct V
-		Mesh(GLenum drawtype) : drawType_(drawtype), attribs_(), inds_() {}
+public:
+    // attribInfo is a vector containing pairs of (attribute number, attribute info)
+    // it should have the same order as the attributes are defined in the custom vertex struct V
+    Mesh(GLenum drawtype) : drawType_(drawtype), attribs_(), inds_() {}
 
-		virtual ~Mesh() 
-		{
-            for(unsigned int i = 0; i < attribs_.size(); i++) {
-				delete attribs_[i].second;
-			}
-			glDeleteBuffers(1, &ibo_);
-			glDeleteVertexArrays(1, &vao_);
-		};
-		
-		template<typename T> Mesh& addAttrib(GLuint location, AttributeInfoSpec<T> &spec)
-		{
-			attribs_.push_back(std::pair<GLuint, AttributeInfoConcept*>(location, new AttributeInfoSpec<T>(spec.numComponents)));
-			return *this;
-		}
-		
-		Mesh& addInd(I &newind)
-		{
-			inds_.push_back(newind);
-			return *this;
-		}
-		
-		Mesh& addInds(std::vector<I> &newinds)
-		{
-			inds_.insert(inds_.end(), newinds.begin(), newinds.end());
-			return *this;
-		}
-		
-		virtual void finalizeBuffers() = 0;
-		virtual void unbindVertexBuffers() = 0;
-		
-		// after setting up all of the vertex attributes and populating vertex and index vectors,
-		// use this method to push all of the data to GL
-		void finalize()
-		{
-			//~ printf("gen vertex arrays %p\n", glGenVertexArrays); fflush(stdout);
-			glGenVertexArrays(1, &vao_);
-			//~ printf("bind vertex array %p\n", glBindVertexArray); fflush(stdout);
-			glBindVertexArray(vao_);
-			//~ printf("done with vao\n"); fflush(stdout);
-			
-			idxCount_ = inds_.size();
-			//~ printf("idxcount is %i\n", idxCount_); fflush(stdout);
-			
-			finalizeBuffers();
-			
-			glGenBuffers(1, &ibo_);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(I)*idxCount_, inds_.data(), GL_STATIC_DRAW);
-			//~ printf("generated and filled ibo\n"); fflush(stdout);
-			
-			glBindVertexArray(0);
-			unbindVertexBuffers();
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			glBindVertexBuffer(0, 0, 0, 0);
-		};
-	
-		void draw()
-		{
-			glBindVertexArray(vao_);
-			glDrawElements(drawType_, idxCount_, GLTypeToEnum<I>::value, (char*) NULL + 0);
-			glBindVertexArray(0);
-		}
-	
-	protected:
-		
-		GLuint vao_, ibo_;
-		GLenum drawType_;
-		GLuint idxCount_;
-		
-		std::vector<std::pair<GLuint, AttributeInfoConcept*>> attribs_;
-		std::vector<I> inds_;
+    virtual ~Mesh()
+    {
+        for(unsigned int i = 0; i < attribs_.size(); i++) {
+            delete attribs_[i].second;
+        }
+        glDeleteBuffers(1, &ibo_);
+        glDeleteVertexArrays(1, &vao_);
+    };
+
+    template<typename T> Mesh& addAttrib(GLuint location, AttributeInfoSpec<T> &spec)
+    {
+        attribs_.push_back(std::pair<GLuint, AttributeInfoConcept*>(location, new AttributeInfoSpec<T>(spec.numComponents)));
+        return *this;
+    }
+
+    Mesh& addInd(I &newind)
+    {
+        inds_.push_back(newind);
+        return *this;
+    }
+
+    Mesh& addInds(std::vector<I> &newinds)
+    {
+        inds_.insert(inds_.end(), newinds.begin(), newinds.end());
+        return *this;
+    }
+
+    virtual void finalizeBuffers() = 0;
+    virtual void unbindVertexBuffers() = 0;
+
+    // after setting up all of the vertex attributes and populating vertex and index vectors,
+    // use this method to push all of the data to GL
+    void finalize()
+    {
+        //~ printf("gen vertex arrays %p\n", glGenVertexArrays); fflush(stdout);
+        glGenVertexArrays(1, &vao_);
+        //~ printf("bind vertex array %p\n", glBindVertexArray); fflush(stdout);
+        glBindVertexArray(vao_);
+        //~ printf("done with vao\n"); fflush(stdout);
+
+        idxCount_ = inds_.size();
+        //~ printf("idxcount is %i\n", idxCount_); fflush(stdout);
+
+        finalizeBuffers();
+
+        glGenBuffers(1, &ibo_);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(I)*idxCount_, inds_.data(), GL_STATIC_DRAW);
+        //~ printf("generated and filled ibo\n"); fflush(stdout);
+
+        glBindVertexArray(0);
+        unbindVertexBuffers();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindVertexBuffer(0, 0, 0, 0);
+    };
+
+    void draw()
+    {
+        glBindVertexArray(vao_);
+        glDrawElements(drawType_, idxCount_, GLTypeToEnum<I>::value, (char*) NULL + 0);
+        glBindVertexArray(0);
+    }
+
+protected:
+
+    GLuint vao_, ibo_;
+    GLenum drawType_;
+    GLuint idxCount_;
+
+    std::vector<std::pair<GLuint, AttributeInfoConcept*>> attribs_;
+    std::vector<I> inds_;
 };
 
 template<class V, typename I>
 class InterleavedMesh : public Mesh<I>
 {
-	public:
-		InterleavedMesh(GLenum drawType) : Mesh<I>(drawType) {}
-		virtual ~InterleavedMesh() 
-		{
-			glDeleteBuffers(1, &vbo_);
-		}
-		
-		InterleavedMesh& addVert(V &newvert)
-		{
-			verts_.addVert(newvert);
-			return *this;
-		}
-		
-		InterleavedMesh& addVerts(std::vector<V> &newverts)
-		{
-			verts_.addVerts(newverts);
-			return *this;
-		}
-		
-		void finalizeBuffers()
-		{
-			glGenBuffers(1, &vbo_);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-			//~ printf("vbo generated\n"); fflush(stdout);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(V)*verts_.size(), verts_.data(), GL_STATIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			//~ printf("glbufferdata finished\n"); fflush(stdout);
-			
-			glBindVertexBuffer(0, vbo_, 0, sizeof(V));
-			unsigned int offset = 0;
-			//~ printf("iterating through attribinfo size %i\n", attribs_.size()); fflush(stdout);
-			for(unsigned int i = 0; i < attribs_.size(); i++) {
-				//~ printf("current index = %i\n", i); fflush(stdout);
-				std::pair<unsigned int, AttributeInfoConcept*> &cur = attribs_[i];
-				//~ printf("enabling vertex attribute #%i\n", cur.first); fflush(stdout);
-				glEnableVertexAttribArray(cur.first);
-				// TODO: enable normalization?
-				//~ glVertexAttribPointer(cur.first, cur.second->numComponents, cur.second->name(), GL_FALSE, sizeof(V), (char *)NULL + offset);
-				// using new ARB_vertex_attrib_binding functions (glVertexAttribPointer is the old way)
-				glVertexAttribFormat(cur.first, cur.second->numComponents, cur.second->name(), GL_FALSE, offset);
-				glVertexAttribBinding(cur.first, 0);
-				//~ printf("vertex attrib pointer with %i components and offset of %i\n", cur.second->numComponents, offset); fflush(stdout);
-				offset += cur.second->getSize();
-			}
-			//~ printf("finished setting up vertex attribs\n"); fflush(stdout);
-		}
-		
-		void unbindVertexBuffers()
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
-		
-	private:
-		GLuint vbo_; // only one vbo with all of the interleaved vertices
-		VertexBufferSpec<V> verts_;
+public:
+    InterleavedMesh(GLenum drawType) : Mesh<I>(drawType) {}
+    virtual ~InterleavedMesh()
+    {
+        glDeleteBuffers(1, &vbo_);
+    }
+
+    InterleavedMesh& addVert(V &newvert)
+    {
+        verts_.addVert(newvert);
+        return *this;
+    }
+
+    InterleavedMesh& addVerts(std::vector<V> &newverts)
+    {
+        verts_.addVerts(newverts);
+        return *this;
+    }
+
+    void finalizeBuffers()
+    {
+        glGenBuffers(1, &vbo_);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+        //~ printf("vbo generated\n"); fflush(stdout);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(V)*verts_.size(), verts_.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //~ printf("glbufferdata finished\n"); fflush(stdout);
+
+        glBindVertexBuffer(0, vbo_, 0, sizeof(V));
+        unsigned int offset = 0;
+        //~ printf("iterating through attribinfo size %i\n", attribs_.size()); fflush(stdout);
+        for(unsigned int i = 0; i < attribs_.size(); i++) {
+            //~ printf("current index = %i\n", i); fflush(stdout);
+            std::pair<unsigned int, AttributeInfoConcept*> &cur = attribs_[i];
+            //~ printf("enabling vertex attribute #%i\n", cur.first); fflush(stdout);
+            glEnableVertexAttribArray(cur.first);
+            // TODO: enable normalization?
+            //~ glVertexAttribPointer(cur.first, cur.second->numComponents, cur.second->name(), GL_FALSE, sizeof(V), (char *)NULL + offset);
+            // using new ARB_vertex_attrib_binding functions (glVertexAttribPointer is the old way)
+            glVertexAttribFormat(cur.first, cur.second->numComponents, cur.second->name(), GL_FALSE, offset);
+            glVertexAttribBinding(cur.first, 0);
+            //~ printf("vertex attrib pointer with %i components and offset of %i\n", cur.second->numComponents, offset); fflush(stdout);
+            offset += cur.second->getSize();
+        }
+        //~ printf("finished setting up vertex attribs\n"); fflush(stdout);
+    }
+
+    void unbindVertexBuffers()
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+private:
+    GLuint vbo_; // only one vbo with all of the interleaved vertices
+    VertexBufferSpec<V> verts_;
 };
 #endif // MESH_H

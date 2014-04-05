@@ -66,8 +66,9 @@ bool Framebuffer::init(bool gen)
 
     bind();
 
-    glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, params_.width);
-    glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, params_.height);
+    // NSIGHT doesn't support this, seems to work without it anyways (since we aren't using empty framebuffers)
+    //glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, params_.width);
+    //glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_HEIGHT, params_.height);
 
     if (params_.colorEnable) {
         if (gen) {

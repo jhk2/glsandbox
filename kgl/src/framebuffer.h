@@ -8,45 +8,45 @@
 
 // initialization parameters
 struct FramebufferParams {
-	//~ FramebufferParams(const FramebufferParams &other) 
-		//~ : width(other.width), height(other.height), numSamples(other.numsamples), depth(other.depth), depthEnable(other.depthEnable), 
-		//~ format(other.format), depthFormat(other.depthFormat), type(other.type), filter(other.filter) {}
-	GLuint width, height, numSamples; // numCsamples
-	union {
-		GLuint numMrts;
-		GLuint depth;
-	};
-	bool colorEnable;
-	bool depthEnable;
-	GLenum format, depthFormat, type, filter;
+    //~ FramebufferParams(const FramebufferParams &other)
+    //~ : width(other.width), height(other.height), numSamples(other.numsamples), depth(other.depth), depthEnable(other.depthEnable),
+    //~ format(other.format), depthFormat(other.depthFormat), type(other.type), filter(other.filter) {}
+    GLuint width, height, numSamples; // numCsamples
+    union {
+        GLuint numMrts;
+        GLuint depth;
+    };
+    bool colorEnable;
+    bool depthEnable;
+    GLenum format, depthFormat, type, filter;
 };
 
 class Framebuffer
 {
-	public:
-		Framebuffer(FramebufferParams &params);
-		virtual ~Framebuffer();
-	
-		void bind();
-		bool bindColorTexture(unsigned int idx = 0);
-		bool bindDepthTexture();
-        void blit(Framebuffer &dest, const bool blitColor = true, const bool blitDepth = true);
-        void blit(const bool blitColor = true, const bool blitDepth = true); // blits to default framebuffer
-		void resize(GLuint width, GLuint height);
+public:
+    Framebuffer(FramebufferParams &params);
+    virtual ~Framebuffer();
 
-        // dump contents to output
-        void dumpColor(int2 start, int2 size, GLenum format, GLenum type) const;
-        void dumpDepth(int2 start, int2 size, GLenum format, GLenum type) const;
+    void bind();
+    bool bindColorTexture(unsigned int idx = 0);
+    bool bindDepthTexture();
+    void blit(Framebuffer &dest, const bool blitColor = true, const bool blitDepth = true);
+    void blit(const bool blitColor = true, const bool blitDepth = true); // blits to default framebuffer
+    void resize(GLuint width, GLuint height);
 
-		GLuint getWidth();
-		GLuint getHeight();
-		GLuint getColorID(unsigned int idx);
-		GLuint getDepthID();
-	protected:
-		bool init(bool gen = true);
-		bool checkStatus(GLenum target);
-	
-		GLuint depth_, *color_, id_;
-		FramebufferParams params_;
+    // dump contents to output
+    void dumpColor(int2 start, int2 size, GLenum format, GLenum type) const;
+    void dumpDepth(int2 start, int2 size, GLenum format, GLenum type) const;
+
+    GLuint getWidth();
+    GLuint getHeight();
+    GLuint getColorID(unsigned int idx);
+    GLuint getDepthID();
+protected:
+    bool init(bool gen = true);
+    bool checkStatus(GLenum target);
+
+    GLuint depth_, *color_, id_;
+    FramebufferParams params_;
 };
 #endif // FRAMEBUFFER_H

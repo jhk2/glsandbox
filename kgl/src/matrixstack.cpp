@@ -6,7 +6,7 @@
 
 // MatrixStack constructor
 MatrixStack::MatrixStack():
-	    mInit(false)
+    mInit(false)
 {
 }
 
@@ -147,7 +147,7 @@ MatrixStack::frustum(const float left, const float right, const float bottom, co
 }
 
 /* -----------------------------------------------------
-		     SEND MATRICES TO OPENGL
+             SEND MATRICES TO OPENGL
 ------------------------------------------------------*/
 
 // to be used with uniform variables
