@@ -63,6 +63,7 @@ void main() {
 
 #ifdef _FRAGMENT_
 uniform layout(location = 2) float selected;
+uniform layout(location = 3) vec3 power;
 in vec3 g_BaryCoord;
 out layout(location = 0) vec4 out_Color;
 
@@ -76,7 +77,7 @@ float border(float d, float scale, float offset) {
 
 void main() {
     float d = min(min(g_BaryCoord.x, g_BaryCoord.y), g_BaryCoord.z);
-    out_Color = border(d, 40, -0.5) * mix(vec4(1.0), vec4(0, 1.0, 0, 1.0), selected);
+    out_Color = border(d, 40, -0.5) * mix(vec4(power, 1.0), vec4(0, 1.0, 0, 1.0), selected);
 }
 
 #endif // _FRAGMENT_

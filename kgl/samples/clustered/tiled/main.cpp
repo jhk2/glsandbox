@@ -63,7 +63,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     cam.setPos(fl3(0, 10, 10));
 
     ShaderProgram dprepass ("tiledprepass.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
-    ShaderProgram drender ("tiledrender.glsl", Shader::VERTEX_SHADER | Shader::FRAGMENT_SHADER);
     ShaderProgram tileCompute ("tiledcompute.glsl", Shader::COMPUTE_SHADER);
     ShaderProgram lightRender ("light.glsl", Shader::VERTEX_SHADER | Shader::TESSELLATION_SHADER | Shader::GEOMETRY_SHADER | Shader::FRAGMENT_SHADER);
 
@@ -87,8 +86,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // diffuse albedo
     // specular color
     // normals
-    params.numMrts = 4;
-    params.type = GL_TEXTURE_2D_MULTISAMPLE;
+    // NOT IDEAL: adding another one for depth because you can't bind depth textures to image units
+    params.numMrts = 5;
+    // compute shader causing gl state mismatch problems when using sampler2DMS
+    //params.type = GL_TEXTURE_2D_MULTISAMPLE;
     gbufs = new Framebuffer(params);
 
     glEnable(GL_SAMPLE_SHADING);
@@ -139,10 +140,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         Light l;
         l.pos = fl3(10, 10, 10);
         l.power = fl3(100.0, 100.0, 100.0);
-        l.size = 1.0;
+        l.size = 200.0;
         lights.push_back(l);
+        l.power = fl3(100.0, 0, 0);
         l.pos = fl3(-10, 10, 10);
         lights.push_back(l);
+        l.power = fl3(0, 100.0, 0);
+        l.pos = fl3(0, 20, 10);
+        lights.push_back(l);
+        l.power = fl3(0, 0, 100.0);
+        l.pos = fl3(0, 0, 10);
+        lights.push_back(l);
+
 
         // for the shaders, we want to store the light properties in a texture buffer
         glGenBuffers(1, &lightsBuf);
@@ -241,7 +250,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     // ray-sphere intersection formula
                     const fl3 oc = -wpos;
                     const float loc = fl3::dot(ray, oc);
-                    const float test = (loc*loc - fl3::dot(oc, oc) + li.size*li.size);
+                    const float test = (loc*loc - fl3::dot(oc, oc) + 1);// + li.size*li.size); // making interaction use radius 1 rather than light size since it can be huge
 
                     if (test >= 0) {
                         // we have a ray sphere intersection
@@ -328,7 +337,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             mats.popMatrix(MatrixStack::MODELVIEW);
             // g-buffers should be populated now
             glUseProgram(0);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
+
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         //glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // render pass
@@ -337,45 +349,66 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-            glActiveTexture(GL_TEXTURE0);
-            gbufs->bindColorTexture(0);
-            glActiveTexture(GL_TEXTURE1);
-            gbufs->bindColorTexture(1);
-            glActiveTexture(GL_TEXTURE2);
-            gbufs->bindColorTexture(2);
-            glActiveTexture(GL_TEXTURE3);
-            gbufs->bindColorTexture(3);
-            glActiveTexture(GL_TEXTURE4);
-            gbufs->bindDepthTexture();
-            smapRender.bind(4);
-            glActiveTexture(GL_TEXTURE5);
-            glBindTexture(GL_TEXTURE_BUFFER, lightsTex);
+            // we have to use image units with everything because compute shader has trouble with texelfetch
+//            glActiveTexture(GL_TEXTURE0);
+//            gbufs->bindColorTexture(0);
+//            glActiveTexture(GL_TEXTURE1);
+//            gbufs->bindColorTexture(1);
+//            glActiveTexture(GL_TEXTURE2);
+//            gbufs->bindColorTexture(2);
+//            glActiveTexture(GL_TEXTURE3);
+//            gbufs->bindColorTexture(3);
+//            glActiveTexture(GL_TEXTURE4);
+//            gbufs->bindDepthTexture();
+//            smapRender.bind(4);
+//            glActiveTexture(GL_TEXTURE5);
+//            glBindTexture(GL_TEXTURE_BUFFER, lightsTex);
 
             glBindImageTexture(0, fbuf->getColorID(0), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
             glBindImageTexture(1, fbuf->getDepthID(), 0, false, 0, GL_WRITE_ONLY, GL_R32F);
+            glBindImageTexture(2, gbufs->getColorID(0), 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(3, gbufs->getColorID(1), 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(4, gbufs->getColorID(2), 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(5, gbufs->getColorID(3), 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(6, gbufs->getColorID(4), 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(7, lightsTex, 0, false, 0, GL_READ_ONLY, GL_R32F);
 
             tileCompute.use();
             glUniform1ui(5, lights.size());
+
+            glUniform3fv(6, 1, &lights[0].pos.x);
+            glUniform3fv(7, 1, &lights[0].power.x);
+            glUniform1f(8, lights[0].size);
+
             glUniformMatrix4fv(3, 1, false, camMv.data());
             glUniformMatrix4fv(4, 1, false, camPj.data());
             glDispatchCompute(numTilesX, numTilesY, 1);
             glUseProgram(0);
+            // we plan to use compute shader output images as texture and framebuffer
+            //glMemoryBarrier(GL_ALL_BARRIER_BITS);
+            glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_FRAMEBUFFER_BARRIER_BIT);
 
             glBindImageTexture(0, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
             glBindImageTexture(1, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(2, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(3, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(4, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(5, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(6, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
+            glBindImageTexture(7, 0, 0, false, 0, GL_READ_ONLY, GL_RGBA32F);
 
-            glBindTexture(GL_TEXTURE_BUFFER, 0);
-            glActiveTexture(GL_TEXTURE4);
-            glBindSampler(0,0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glActiveTexture(GL_TEXTURE3);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
+//            glBindTexture(GL_TEXTURE_BUFFER, 0);
+//            glActiveTexture(GL_TEXTURE4);
+//            glBindSampler(4,0);
+//            glBindTexture(GL_TEXTURE_2D, 0);
+//            glActiveTexture(GL_TEXTURE3);
+//            glBindTexture(GL_TEXTURE_2D, 0);
+//            glActiveTexture(GL_TEXTURE2);
+//            glBindTexture(GL_TEXTURE_2D, 0);
+//            glActiveTexture(GL_TEXTURE1);
+//            glBindTexture(GL_TEXTURE_2D, 0);
+//            glActiveTexture(GL_TEXTURE0);
+//            glBindTexture(GL_TEXTURE_2D, 0);
         }
 
         {
@@ -391,9 +424,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 Light &l = lights.at(i);
                 mats.pushMatrix(MatrixStack::MODELVIEW);
                 mats.translate(l.pos);
-                mats.scale(l.size, l.size, l.size);
+                //mats.scale(l.size, l.size, l.size);
                 mats.matrixToUniform(MatrixStack::MODELVIEW);
                 glUniform1f(2, (i==closestLight) ? 1.0f : 0);
+                glUniform3fv(3, 1, &l.power.x);
                 lightMesh->draw();
                 mats.popMatrix(MatrixStack::MODELVIEW);
             }
