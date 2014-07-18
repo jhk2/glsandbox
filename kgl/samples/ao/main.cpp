@@ -16,6 +16,7 @@
 
 MatrixStack mats;
 Matrix eyePj;
+Matrix invEyePj;
 FirstPersonCamera cam;
 Framebuffer *fbuf; // final nonmsaa framebuffer
 Framebuffer *msbuf; // msaa framebuffer for depth prepass
@@ -220,6 +221,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 //            aobuf->bindColorTexture(0);
 
             mats.copy(MatrixStack::PROJECTION, eyePj);
+            eyePj.getInverse(invEyePj);
             mats.loadIdentity(MatrixStack::MODELVIEW);
             mats.ortho(0, 1, 0, 1);
 //            mats.matrixToUniform(MatrixStack::MODELVIEW);
@@ -248,7 +250,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             mats.matrixToUniform(MatrixStack::MODELVIEW);
             mats.matrixToUniform(MatrixStack::PROJECTION);
-            glUniformMatrix4fv(2, 1, false, eyePj.data()); // bind to uniform loc 2
+            glUniformMatrix4fv(2, 1, false, invEyePj.data()); // bind to uniform loc 2
 
             quad.draw();
             glBindTexture(GL_TEXTURE_2D, 0);

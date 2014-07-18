@@ -1,6 +1,6 @@
 #version 430 core
 
-uniform layout(location = 2) mat4 eyePj; // perspective camera used to render original scene
+uniform layout(location = 2) mat4 invEyePj; // inverse of perspective camera used to render original scene
 
 #ifdef _VERTEX_
 uniform layout(location = 0) mat4 mvMatrix;
@@ -68,12 +68,13 @@ void main()
     vec3 start_Pos = vec3(out_Tex, start_Z);
     vec3 ndc_Pos = (2.0 * start_Pos) - 1.0; // transform to normalized device coordinates xyz/w
     // reconstruct view space position
-    vec4 unproject = inverse(eyePj) * vec4(ndc_Pos, 1.0);
+    vec4 unproject = invEyePj * vec4(ndc_Pos, 1.0);
     vec3 viewPos = unproject.xyz / unproject.w;
 
     // debugging: compare with straight up position buffer
     //vec3 defPos = texture(positionMap, out_Tex).xyz;
-    //out_Color = vec4(viewPos.xyz, 1.0);
+    //out_Color = vec4(viewPos.xy, -viewPos.z, 1.0);
+    //return;
     //out_Color = vec4(abs(defPos - viewPos.xyz), 1.0);
     //return;
     // bizarrely, there is huge difference in values near x=0 and y=0 where no geometry was originally drawn
@@ -88,7 +89,7 @@ void main()
         float off_start_Z = texture(depthMap, offTex.st).r;
         vec3 off_start_Pos = vec3(offTex, off_start_Z);
         vec3 off_ndc_Pos = (2.0 * off_start_Pos) - 1.0;
-        vec4 off_unproject = inverse(eyePj) * vec4(off_ndc_Pos, 1.0);
+        vec4 off_unproject = invEyePj * vec4(off_ndc_Pos, 1.0);
         vec3 off_viewPos = off_unproject.xyz / off_unproject.w;
 
         vec3 diff = off_viewPos.xyz - viewPos.xyz;

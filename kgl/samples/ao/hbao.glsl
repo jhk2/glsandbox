@@ -1,7 +1,7 @@
 #version 430 core
 #define M_PI 3.1415926535897932384626433832795
 
-uniform layout(location = 2) mat4 eyePj; // perspective camera used to render original scene
+uniform layout(location = 2) mat4 invEyePj; // inverse of perspective camera used to render original scene
 
 #ifdef _VERTEX_
 uniform layout(location = 0) mat4 mvMatrix;
@@ -60,7 +60,7 @@ void main()
     vec3 start_Pos = vec3(out_Tex, start_Z);
     vec3 ndc_Pos = (2.0 * start_Pos) - 1.0; // transform to normalized device coordinates xyz/w
     // reconstruct view space position
-    vec4 unproject = inverse(eyePj) * vec4(ndc_Pos, 1.0);
+    vec4 unproject = invEyePj * vec4(ndc_Pos, 1.0);
     vec3 viewPos = unproject.xyz / unproject.w; // 3d view space position P
     vec3 viewNorm = texture(normalMap, out_Tex).xyz; // 3d view space normal N
     float total = 0.0;
@@ -82,7 +82,7 @@ void main()
             float off_start_Z = texture(depthMap, offTex.st).r;
             vec3 off_start_Pos = vec3(offTex, off_start_Z);
             vec3 off_ndc_Pos = (2.0 * off_start_Pos) - 1.0;
-            vec4 off_unproject = inverse(eyePj) * vec4(off_ndc_Pos, 1.0);
+            vec4 off_unproject = invEyePj * vec4(off_ndc_Pos, 1.0);
             vec3 off_viewPos = off_unproject.xyz / off_unproject.w;
             // we now have the view space position of the offset point
             vec3 diff = off_viewPos.xyz - viewPos.xyz;
